@@ -3,33 +3,91 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Tra cứu CVHC</title>
+<title>Tra cứu CVHC Upload Log</title>
 <style>
-  body { font-family: Segoe UI, sans-serif; background-color: #f4f4f4; text-align: center; }
-  h1 { color: #333; }
+  body {
+    font-family: "Segoe UI", sans-serif;
+    background-color: #f4f4f4;
+    text-align: center;
+    color: #333;
+  }
+
+  header {
+    background-image: url('https://images.unsplash.com/photo-1506744038136-46273834b3fb');
+    background-size: cover;
+    background-position: center;
+    padding: 60px 0;
+    color: white;
+    font-size: 32px;
+    font-weight: 600;
+    text-shadow: 0 0 10px rgba(0,0,0,0.5);
+  }
+
+  .search-box {
+    margin-top: -30px;
+    background-color: #fff;
+    display: inline-flex;
+    border-radius: 25px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+
   input {
-    width: 300px; padding: 10px; border-radius: 20px; border: 1px solid #ccc; text-align: center;
+    width: 300px;
+    padding: 12px 15px;
+    border: none;
+    outline: none;
+    font-size: 16px;
   }
+
   button {
-    background-color: #5C9EAD; color: white; border: none; padding: 10px 15px;
-    border-radius: 20px; cursor: pointer;
+    background-color: #5C9EAD;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    cursor: pointer;
+    font-size: 16px;
   }
+
+  button:hover {
+    background-color: #A8D0A2;
+  }
+
   table {
-    margin: 20px auto; border-collapse: collapse; width: 60%;
+    margin: 40px auto;
+    border-collapse: collapse;
+    width: 70%;
+    background-color: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
   }
+
   th, td {
-    border: 1px solid #ccc; padding: 10px;
+    border: 1px solid #ddd;
+    padding: 12px;
   }
+
   th {
     background-color: #A8D0A2;
+  }
+
+  td {
+    text-align: center;
+  }
+
+  #result p {
+    color: red;
+    font-weight: bold;
   }
 </style>
 </head>
 <body>
 
-<h1>Tra cứu CVHC Upload Log</h1>
-<input type="text" id="hblInput" placeholder="Nhập mã HBL (vd: KMLSHA10080014)" />
-<button onclick="traCuu()">🔍 Tra cứu</button>
+<header>Welcome, Sabina!</header>
+
+<div class="search-box">
+  <input type="text" id="hblInput" placeholder="Nhập mã HBL (ví dụ: KMLSHA10080014)" />
+  <button onclick="traCuu()">🔍</button>
+</div>
 
 <div id="result"></div>
 
@@ -37,29 +95,38 @@
 async function traCuu() {
   const hbl = document.getElementById("hblInput").value.trim();
   if (!hbl) {
-    alert("Vui lòng nhập mã BL!");
+    alert("Vui lòng nhập mã HBL!");
     return;
   }
 
-  const url = "https://script.google.com/macros/s/AKfycbzPH2FE8odsIoJA-OKm5lrTGA1x405PiIOcj7YuOi_8PZFcUyyapx5k09EAWqRbF4vq/exec" + encodeURIComponent(hbl); // 🔹 Thay URL web app
+  const url = "https://script.google.com/macros/s/AKfycbzPH2FE8odsIoJA-OKm5lrTGA1x405PiIOcj7YuOi_8PZFcUyyapx5k09EAWqRbF4vq/exec?hbl=" + encodeURIComponent(hbl);
 
-  const response = await fetch(url);
-  const data = await response.json();
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
 
-  if (data.error) {
-    document.getElementById("result").innerHTML = `<p style='color:red;'>${data.error}</p>`;
-  } else {
-    document.getElementById("result").innerHTML = `
-      <table>
-        <tr><th>Đã nhận TT LCC</th><th>Đã nhận cược</th><th>Ngày cược</th><th>Ngày hoàn</th></tr>
-        <tr>
-          <td>${data["Đã nhận TT LCC"]}</td>
-          <td>${data["Đã nhận cược"]}</td>
-          <td>${data["Ngày cược"]}</td>
-          <td>${data["Ngày hoàn"]}</td>
-        </tr>
-      </table>
-    `;
+    if (data.error) {
+      document.getElementById("result").innerHTML = `<p>${data.error}</p>`;
+    } else {
+      document.getElementById("result").innerHTML = `
+        <table>
+          <tr>
+            <th>Đã nhận TT LCC</th>
+            <th>Đã nhận cược</th>
+            <th>Ngày cược</th>
+            <th>Ngày hoàn</th>
+          </tr>
+          <tr>
+            <td>${data["Đã nhận TT LCC"]}</td>
+            <td>${data["Đã nhận cược"]}</td>
+            <td>${data["Ngày cược"]}</td>
+            <td>${data["Ngày hoàn"]}</td>
+          </tr>
+        </table>
+      `;
+    }
+  } catch (error) {
+    document.getElementById("result").innerHTML = `<p>Lỗi kết nối hoặc script chưa được public.</p>`;
   }
 }
 </script>
