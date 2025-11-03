@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tra cứu CVHC</title>
+<style>
+  body { font-family: Segoe UI, sans-serif; background-color: #f4f4f4; text-align: center; }
+  h1 { color: #333; }
+  input {
+    width: 300px; padding: 10px; border-radius: 20px; border: 1px solid #ccc; text-align: center;
+  }
+  button {
+    background-color: #5C9EAD; color: white; border: none; padding: 10px 15px;
+    border-radius: 20px; cursor: pointer;
+  }
+  table {
+    margin: 20px auto; border-collapse: collapse; width: 60%;
+  }
+  th, td {
+    border: 1px solid #ccc; padding: 10px;
+  }
+  th {
+    background-color: #A8D0A2;
+  }
+</style>
+</head>
+<body>
+
+<h1>Tra cứu CVHC Upload Log</h1>
+<input type="text" id="hblInput" placeholder="Nhập mã HBL (vd: KMLSHA10080014)" />
+<button onclick="traCuu()">🔍 Tra cứu</button>
+
+<div id="result"></div>
+
+<script>
+async function traCuu() {
+  const hbl = document.getElementById("hblInput").value.trim();
+  if (!hbl) {
+    alert("Vui lòng nhập mã BL!");
+    return;
+  }
+
+  const url = "https://script.google.com/macros/s/AKfycbxabc123xyz/exec?hbl=" + encodeURIComponent(hbl); // 🔹 Thay URL web app
+
+  const response = await fetch(url);
+  const data = await response.json();
+
+  if (data.error) {
+    document.getElementById("result").innerHTML = `<p style='color:red;'>${data.error}</p>`;
+  } else {
+    document.getElementById("result").innerHTML = `
+      <table>
+        <tr><th>Đã nhận TT LCC</th><th>Đã nhận cược</th><th>Ngày cược</th><th>Ngày hoàn</th></tr>
+        <tr>
+          <td>${data["Đã nhận TT LCC"]}</td>
+          <td>${data["Đã nhận cược"]}</td>
+          <td>${data["Ngày cược"]}</td>
+          <td>${data["Ngày hoàn"]}</td>
+        </tr>
+      </table>
+    `;
+  }
+}
+</script>
+
+</body>
+</html>
