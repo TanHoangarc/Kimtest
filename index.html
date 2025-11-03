@@ -1,126 +1,106 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Tra cứu CVHC Upload Log</title>
-<style>
-  body {
-    font-family: "Segoe UI", sans-serif;
-    background-color: #f4f4f4;
-    text-align: center;
-    color: #333;
-  }
-  header {
-    background-image: url('https://images.unsplash.com/photo-1506744038136-46273834b3fb');
-    background-size: cover;
-    background-position: center;
-    padding: 60px 0;
-    color: white;
-    font-size: 32px;
-    font-weight: 600;
-    text-shadow: 0 0 10px rgba(0,0,0,0.5);
-  }
-  .search-box {
-    margin-top: -30px;
-    background-color: #fff;
-    display: inline-flex;
-    border-radius: 25px;
-    overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  }
-  input {
-    width: 300px;
-    padding: 12px 15px;
-    border: none;
-    outline: none;
-    font-size: 16px;
-  }
-  button {
-    background-color: #5C9EAD;
-    color: white;
-    border: none;
-    padding: 12px 20px;
-    cursor: pointer;
-    font-size: 16px;
-  }
-  button:hover {
-    background-color: #A8D0A2;
-  }
-  table {
-    margin: 40px auto;
-    border-collapse: collapse;
-    width: 70%;
-    background-color: white;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  }
-  th, td {
-    border: 1px solid #ddd;
-    padding: 12px;
-  }
-  th {
-    background-color: #A8D0A2;
-  }
-  td {
-    text-align: center;
-  }
-  #result p {
-    color: red;
-    font-weight: bold;
-  }
-</style>
+  <meta charset="UTF-8">
+  <title>Tra cứu thông tin Kimberry</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background-color: #F4F4F4;
+      margin: 0;
+      padding: 40px;
+    }
+    .container {
+      max-width: 500px;
+      background: #fff;
+      margin: 0 auto;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 25px;
+    }
+    input[type=text] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      font-size: 15px;
+    }
+    button {
+      width: 100%;
+      background-color: #5C9EAD;
+      border: none;
+      color: white;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #A8D0A2;
+    }
+    .result {
+      margin-top: 25px;
+      padding: 15px;
+      background: #eef5ff;
+      border-radius: 10px;
+      line-height: 1.6;
+      color: #333;
+      white-space: pre-line;
+    }
+    .error {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
+  <div class="container">
+    <h2>🔍 Tra cứu thông tin Kimberry</h2>
+    <input type="text" id="searchValue" placeholder="Nhập mã HBL hoặc số cần tìm...">
+    <button onclick="searchData()">Tìm kiếm</button>
+    <div id="result" class="result"></div>
+  </div>
 
-<header>Tra cứu CVHC Upload Log</header>
+  <script>
+    const scriptURL = "https://script.google.com/macros/s/AKfycbx7-f_QrfEFjrz1Hww2LvuIZ95XD2JPXuFkvPvQEuevZ2IFiTyEdB32ueVFUJj6L9jIEA/exec";
 
-<div class="search-box">
-  <input type="text" id="hblInput" placeholder="Nhập mã HBL (VD: KMLSHA10080014)" />
-  <button onclick="traCuu()">🔍</button>
-</div>
+    async function searchData() {
+      const value = document.getElementById("searchValue").value.trim();
+      const resultDiv = document.getElementById("result");
 
-<div id="result"></div>
+      if (!value) {
+        resultDiv.innerHTML = '<span class="error">⚠️ Vui lòng nhập mã cần tra cứu.</span>';
+        return;
+      }
 
-<script>
-async function traCuu() {
-  const hbl = document.getElementById("hblInput").value.trim();
-  if (!hbl) {
-    alert("Vui lòng nhập mã HBL!");
-    return;
-  }
+      resultDiv.innerHTML = "⏳ Đang tra cứu dữ liệu...";
 
-  // Gọi Apps Script Web App
-  const url = "https://script.google.com/macros/s/AKfycby9mEMmMiJEFO2KsagFZYzRLHI7BTC_r4xrRmpIXZKR12F-wShCI11a5Xp6MvRuDReu/exec?hbl=" + encodeURIComponent(hbl);
+      try {
+        const response = await fetch(`${scriptURL}?value=${encodeURIComponent(value)}`);
+        const data = await response.json();
 
-  try {
-    const response = await fetch(url);
-    const data = await response.json();
+        if (!data || Object.keys(data).length === 0) {
+          resultDiv.innerHTML = '<span class="error">❌ Không tìm thấy dữ liệu.</span>';
+          return;
+        }
 
-    if (data.error) {
-      document.getElementById("result").innerHTML = `<p>${data.error}</p>`;
-    } else {
-      document.getElementById("result").innerHTML = `
-        <table>
-          <tr>
-            <th>Đã nhận TT LCC</th>
-            <th>Đã nhận cược</th>
-            <th>Ngày cược</th>
-            <th>Ngày hoàn</th>
-          </tr>
-          <tr>
-            <td>${data["Đã nhận TT LCC"] || ""}</td>
-            <td>${data["Đã nhận cược"] || ""}</td>
-            <td>${data["Ngày cược"] || ""}</td>
-            <td>${data["Ngày hoàn"] || ""}</td>
-          </tr>
-        </table>
-      `;
+        resultDiv.innerHTML =
+          "📦 <b>HBL:</b> " + data.hbl + "\n" +
+          "🧾 <b>Lcc:</b> " + data.lcc + "\n" +
+          "🏗️ <b>Depo:</b> " + data.depo + "\n" +
+          "📅 <b>Date cược:</b> " + data.dateCuoc + "\n" +
+          "📆 <b>Date hoàn:</b> " + data.dateHoan;
+      } catch (error) {
+        resultDiv.innerHTML = '<span class="error">🚫 Lỗi khi kết nối server.</span>';
+      }
     }
-  } catch (error) {
-    document.getElementById("result").innerHTML = `<p>Lỗi kết nối hoặc script chưa được public.</p>`;
-  }
-}
-</script>
-
+  </script>
 </body>
 </html>
