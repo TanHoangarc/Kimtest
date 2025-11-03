@@ -1,126 +1,66 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Tra cứu CVHC Upload Log</title>
-<style>
-  body {
-    font-family: "Segoe UI", sans-serif;
-    background-color: #f4f4f4;
-    text-align: center;
-    color: #333;
-  }
-  header {
-    background-image: url('https://images.unsplash.com/photo-1506744038136-46273834b3fb');
-    background-size: cover;
-    background-position: center;
-    padding: 60px 0;
-    color: white;
-    font-size: 32px;
-    font-weight: 600;
-    text-shadow: 0 0 10px rgba(0,0,0,0.5);
-  }
-  .search-box {
-    margin-top: -30px;
-    background-color: #fff;
-    display: inline-flex;
-    border-radius: 25px;
-    overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  }
-  input {
-    width: 300px;
-    padding: 12px 15px;
-    border: none;
-    outline: none;
-    font-size: 16px;
-  }
-  button {
-    background-color: #5C9EAD;
-    color: white;
-    border: none;
-    padding: 12px 20px;
-    cursor: pointer;
-    font-size: 16px;
-  }
-  button:hover {
-    background-color: #A8D0A2;
-  }
-  table {
-    margin: 40px auto;
-    border-collapse: collapse;
-    width: 70%;
-    background-color: white;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  }
-  th, td {
-    border: 1px solid #ddd;
-    padding: 12px;
-  }
-  th {
-    background-color: #A8D0A2;
-  }
-  td {
-    text-align: center;
-  }
-  #result p {
-    color: red;
-    font-weight: bold;
-  }
-</style>
+    <meta charset="UTF-8">
+    <title>Tra cứu CVHC Upload Log</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background-color: #f4f4f9; }
+        .search-container { text-align: center; margin-bottom: 30px; }
+        input[type="text"] { padding: 10px; width: 300px; border: 1px solid #ccc; border-radius: 4px 0 0 4px; }
+        button { padding: 10px 15px; background-color: #5cb85c; color: white; border: none; border-radius: 0 4px 4px 0; cursor: pointer; }
+        .result-container { background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }
+        .result-item { margin-bottom: 10px; padding-bottom: 5px; border-bottom: 1px dashed #eee; }
+        .result-item strong { display: inline-block; width: 150px; }
+    </style>
 </head>
 <body>
+    <div class="search-container">
+        <h1>Tra cứu CVHC Upload Log</h1>
+        <form id="search-form">
+            <input type="text" id="hbl-code" name="hbl_code" placeholder="Nhập mã HBL (Cột B)" required>
+            <button type="submit">🔍 Tra cứu</button>
+        </form>
+    </div>
 
-<header>Tra cứu CVHC Upload Log</header>
+    <h2>Kết quả Tìm kiếm</h2>
+    <div class="result-container" id="search-results">
+        <p>Vui lòng nhập mã HBL và nhấn Tra cứu.</p>
+    </div>
 
-<div class="search-box">
-  <input type="text" id="hblInput" placeholder="Nhập mã HBL (VD: KMLSHA10080014)" />
-  <button onclick="traCuu()">🔍</button>
-</div>
+    <script>
+        $(document).ready(function() {
+            $('#search-form').on('submit', function(e) {
+                e.preventDefault(); // Ngăn chặn form submit truyền thống
+                const hblCode = $('#hbl-code').val();
 
-<div id="result"></div>
+                $.ajax({
+                    url: '/search', // Gửi yêu cầu đến hàm 'search_data' trong Python
+                    type: 'POST',
+                    data: { 'hbl_code': hblCode },
+                    dataType: 'json',
+                    success: function(response) {
+                        const resultsDiv = $('#search-results');
+                        resultsDiv.empty(); // Xóa kết quả cũ
 
-<script>
-async function traCuu() {
-  const hbl = document.getElementById("hblInput").value.trim();
-  if (!hbl) {
-    alert("Vui lòng nhập mã HBL!");
-    return;
-  }
-
-  // Gọi Apps Script Web App
-  const url = "https://script.google.com/macros/s/AKfycby9mEMmMiJEFO2KsagFZYzRLHI7BTC_r4xrRmpIXZKR12F-wShCI11a5Xp6MvRuDReu/exec?hbl=" + encodeURIComponent(hbl);
-
-  try {
-    const response = await fetch(url);
-    const data = await response.json();
-
-    if (data.error) {
-      document.getElementById("result").innerHTML = `<p>${data.error}</p>`;
-    } else {
-      document.getElementById("result").innerHTML = `
-        <table>
-          <tr>
-            <th>Đã nhận TT LCC</th>
-            <th>Đã nhận cược</th>
-            <th>Ngày cược</th>
-            <th>Ngày hoàn</th>
-          </tr>
-          <tr>
-            <td>${data["Đã nhận TT LCC"] || ""}</td>
-            <td>${data["Đã nhận cược"] || ""}</td>
-            <td>${data["Ngày cược"] || ""}</td>
-            <td>${data["Ngày hoàn"] || ""}</td>
-          </tr>
-        </table>
-      `;
-    }
-  } catch (error) {
-    document.getElementById("result").innerHTML = `<p>Lỗi kết nối hoặc script chưa được public.</p>`;
-  }
-}
-</script>
-
+                        if (response.error) {
+                            resultsDiv.append(`<p style="color: red;">${response.error}</p>`);
+                        } else {
+                            // Hiển thị thông tin Cột C, D, E, F
+                            resultsDiv.append(`
+                                <div class="result-item"><strong>Cột C - File Name:</strong> ${response.file_name}</div>
+                                <div class="result-item"><strong>Cột D - Đã nhận TT LCC:</strong> ${response.tt_lcc_nhan}</div>
+                                <div class="result-item"><strong>Cột E - Đã nhận:</strong> ${response.da_nhan}</div>
+                                <div class="result-item"><strong>Cột F - Ngày Cước:</strong> ${response.ngay_cuoc}</div>
+                            `);
+                        }
+                    },
+                    error: function() {
+                        $('#search-results').html('<p style="color: red;">Đã xảy ra lỗi khi kết nối với máy chủ.</p>');
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>
