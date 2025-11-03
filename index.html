@@ -1,66 +1,68 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Tra cứu CVHC Upload Log</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <style>
-        body { font-family: sans-serif; padding: 20px; background-color: #f4f4f9; }
-        .search-container { text-align: center; margin-bottom: 30px; }
-        input[type="text"] { padding: 10px; width: 300px; border: 1px solid #ccc; border-radius: 4px 0 0 4px; }
-        button { padding: 10px 15px; background-color: #5cb85c; color: white; border: none; border-radius: 0 4px 4px 0; cursor: pointer; }
-        .result-container { background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }
-        .result-item { margin-bottom: 10px; padding-bottom: 5px; border-bottom: 1px dashed #eee; }
-        .result-item strong { display: inline-block; width: 150px; }
-    </style>
+  <base target="_top">
+  <title>Tra cứu CVHC Upload Log</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background-color: #f4f4f9; text-align: center; }
+    h1 { color: #2e6c46; }
+    input[type="text"] { padding: 10px; width: 300px; border: 1px solid #ccc; border-radius: 4px 0 0 4px; box-sizing: border-box; }
+    button { padding: 10px 15px; background-color: #5cb85c; color: white; border: none; border-radius: 0 4px 4px 0; cursor: pointer; }
+    #search-box { display: flex; justify-content: center; margin-bottom: 30px; }
+    #search-results { background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 600px; margin: auto; text-align: left; }
+    .result-item { margin-bottom: 8px; }
+    .result-item strong { display: inline-block; width: 180px; font-weight: bold; }
+  </style>
 </head>
 <body>
-    <div class="search-container">
-        <h1>Tra cứu CVHC Upload Log</h1>
-        <form id="search-form">
-            <input type="text" id="hbl-code" name="hbl_code" placeholder="Nhập mã HBL (Cột B)" required>
-            <button type="submit">🔍 Tra cứu</button>
-        </form>
-    </div>
+  <h1>Tra cứu CVHC Upload Log</h1>
+  
+  <div id="search-box">
+    <input type="text" id="hbl-code" placeholder="Nhập mã HBL (Cột B)" required>
+    <button onclick="handleSearch()">🔍 Tra cứu</button>
+  </div>
 
-    <h2>Kết quả Tìm kiếm</h2>
-    <div class="result-container" id="search-results">
-        <p>Vui lòng nhập mã HBL và nhấn Tra cứu.</p>
-    </div>
+  <div id="search-results">
+    <p>Vui lòng nhập mã HBL và nhấn Tra cứu.</p>
+  </div>
 
-    <script>
-        $(document).ready(function() {
-            $('#search-form').on('submit', function(e) {
-                e.preventDefault(); // Ngăn chặn form submit truyền thống
-                const hblCode = $('#hbl-code').val();
+  <script>
+    // Hàm gọi khi nhấn nút Tra cứu
+    function handleSearch() {
+      const hblCode = document.getElementById('hbl-code').value;
+      const resultsDiv = document.getElementById('search-results');
+      
+      resultsDiv.innerHTML = '<p>Đang tìm kiếm...</p>'; // Hiển thị trạng thái chờ
 
-                $.ajax({
-                    url: '/search', // Gửi yêu cầu đến hàm 'search_data' trong Python
-                    type: 'POST',
-                    data: { 'hbl_code': hblCode },
-                    dataType: 'json',
-                    success: function(response) {
-                        const resultsDiv = $('#search-results');
-                        resultsDiv.empty(); // Xóa kết quả cũ
+      // Sử dụng google.script.run để gọi hàm searchData trong Apps Script
+      google.script.run
+          .withSuccessHandler(displayResult) // Gọi hàm này khi tìm kiếm thành công
+          .withFailureHandler(displayError) // Gọi hàm này khi có lỗi hệ thống
+          .searchData(hblCode); // Tên hàm trong Apps Script
+    }
 
-                        if (response.error) {
-                            resultsDiv.append(`<p style="color: red;">${response.error}</p>`);
-                        } else {
-                            // Hiển thị thông tin Cột C, D, E, F
-                            resultsDiv.append(`
-                                <div class="result-item"><strong>Cột C - File Name:</strong> ${response.file_name}</div>
-                                <div class="result-item"><strong>Cột D - Đã nhận TT LCC:</strong> ${response.tt_lcc_nhan}</div>
-                                <div class="result-item"><strong>Cột E - Đã nhận:</strong> ${response.da_nhan}</div>
-                                <div class="result-item"><strong>Cột F - Ngày Cước:</strong> ${response.ngay_cuoc}</div>
-                            `);
-                        }
-                    },
-                    error: function() {
-                        $('#search-results').html('<p style="color: red;">Đã xảy ra lỗi khi kết nối với máy chủ.</p>');
-                    }
-                });
-            });
-        });
-    </script>
+    // Hàm xử lý kết quả trả về thành công
+    function displayResult(result) {
+      const resultsDiv = document.getElementById('search-results');
+      resultsDiv.innerHTML = ''; // Xóa trạng thái chờ
+      
+      if (result.error) {
+        resultsDiv.innerHTML = `<p style="color: red;">${result.error}</p>`;
+      } else {
+        // Hiển thị thông tin Cột C, D, E, F
+        resultsDiv.innerHTML = `
+          <div class="result-item"><strong>Cột C - File Name:</strong> ${result.fileName}</div>
+          <div class="result-item"><strong>Cột D - Đã nhận TT LCC:</strong> ${result.ttLccNhan}</div>
+          <div class="result-item"><strong>Cột E - Đã nhận:</strong> ${result.daNhan}</div>
+          <div class="result-item"><strong>Cột F - Ngày Cước:</strong> ${result.ngayCuoc}</div>
+        `;
+      }
+    }
+    
+    // Hàm xử lý khi có lỗi Apps Script
+    function displayError(error) {
+        document.getElementById('search-results').innerHTML = `<p style="color: red;">Lỗi hệ thống: ${error.message}</p>`;
+    }
+  </script>
 </body>
 </html>
