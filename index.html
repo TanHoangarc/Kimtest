@@ -4,21 +4,88 @@
   <base target="_top">
   <title>Tra cứu CVHC Upload Log</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; background-color: #f4f4f9; text-align: center; }
-    h1 { color: #2e6c46; }
-    input[type="text"] { padding: 10px; width: 300px; border: 1px solid #ccc; border-radius: 4px 0 0 4px; box-sizing: border-box; }
-    button { padding: 10px 15px; background-color: #5cb85c; color: white; border: none; border-radius: 0 4px 4px 0; cursor: pointer; }
-    #search-box { display: flex; justify-content: center; margin-bottom: 30px; }
-    #search-results { background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 600px; margin: auto; text-align: left; }
-    .result-item { margin-bottom: 8px; }
-    .result-item strong { display: inline-block; width: 180px; font-weight: bold; }
+    /* ------------------------------------- */
+    /* CSS Styling cho giao diện (Layout) */
+    /* ------------------------------------- */
+    body { 
+      font-family: Arial, sans-serif; 
+      padding: 20px; 
+      background-color: #f4f4f9; 
+      text-align: center; 
+      color: #333;
+    }
+    h1 { 
+      color: #2e6c46; 
+      margin-bottom: 30px;
+    }
+    
+    /* Thanh tìm kiếm */
+    #search-box { 
+      display: flex; 
+      justify-content: center; 
+      margin-bottom: 30px; 
+    }
+    input[type="text"] { 
+      padding: 12px; 
+      width: 350px; 
+      border: 1px solid #ccc; 
+      border-radius: 4px 0 0 4px; 
+      box-sizing: border-box; 
+      font-size: 16px;
+    }
+    button { 
+      padding: 12px 20px; 
+      background-color: #007bff; /* Màu xanh dương hiện đại */
+      color: white; 
+      border: none; 
+      border-radius: 0 4px 4px 0; 
+      cursor: pointer; 
+      font-size: 16px;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+        background-color: #0056b3;
+    }
+    
+    /* Kết quả */
+    #search-results { 
+      background-color: white; 
+      padding: 25px; 
+      border-radius: 8px; 
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+      max-width: 650px; 
+      margin: auto; 
+      text-align: left; 
+    }
+    .result-item { 
+      margin-bottom: 12px; 
+      padding-bottom: 5px; 
+      border-bottom: 1px dashed #eee;
+    }
+    .result-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+    .result-item strong { 
+      display: inline-block; 
+      width: 200px; 
+      font-weight: bold; 
+      color: #3a7946;
+    }
+    .loading-text {
+        color: #007bff;
+    }
+    .error-text {
+        color: red;
+    }
   </style>
 </head>
 <body>
+  
   <h1>Tra cứu CVHC Upload Log</h1>
   
   <div id="search-box">
-    <input type="text" id="hbl-code" placeholder="Nhập mã HBL (Cột B)" required>
+    <input type="text" id="hbl-code" placeholder="Nhập mã HBL (Cột B) vd: KMLSHA01020010" required>
     <button onclick="handleSearch()">🔍 Tra cứu</button>
   </div>
 
@@ -27,18 +94,27 @@
   </div>
 
   <script>
+    /* ------------------------------------- */
+    /* JavaScript (Kết nối với Apps Script) */
+    /* ------------------------------------- */
+    
     // Hàm gọi khi nhấn nút Tra cứu
     function handleSearch() {
       const hblCode = document.getElementById('hbl-code').value;
       const resultsDiv = document.getElementById('search-results');
       
-      resultsDiv.innerHTML = '<p>Đang tìm kiếm...</p>'; // Hiển thị trạng thái chờ
+      if (hblCode.trim() === '') {
+          resultsDiv.innerHTML = '<p class="error-text">Vui lòng nhập mã HBL.</p>';
+          return;
+      }
+      
+      resultsDiv.innerHTML = '<p class="loading-text">Đang tìm kiếm dữ liệu...</p>'; // Hiển thị trạng thái chờ
 
-      // Sử dụng google.script.run để gọi hàm searchData trong Apps Script
+      // Gọi hàm searchData trong Apps Script (Code.gs)
       google.script.run
-          .withSuccessHandler(displayResult) // Gọi hàm này khi tìm kiếm thành công
-          .withFailureHandler(displayError) // Gọi hàm này khi có lỗi hệ thống
-          .searchData(hblCode); // Tên hàm trong Apps Script
+          .withSuccessHandler(displayResult) 
+          .withFailureHandler(displayError) 
+          .searchData(hblCode); 
     }
 
     // Hàm xử lý kết quả trả về thành công
@@ -47,9 +123,9 @@
       resultsDiv.innerHTML = ''; // Xóa trạng thái chờ
       
       if (result.error) {
-        resultsDiv.innerHTML = `<p style="color: red;">${result.error}</p>`;
+        resultsDiv.innerHTML = `<p class="error-text">Lỗi: ${result.error}</p>`;
       } else {
-        // Hiển thị thông tin Cột C, D, E, F
+        // Hiển thị thông tin Cột C, D, E, F dựa trên tên biến trả về từ Code.gs
         resultsDiv.innerHTML = `
           <div class="result-item"><strong>Cột C - File Name:</strong> ${result.fileName}</div>
           <div class="result-item"><strong>Cột D - Đã nhận TT LCC:</strong> ${result.ttLccNhan}</div>
@@ -59,9 +135,9 @@
       }
     }
     
-    // Hàm xử lý khi có lỗi Apps Script
+    // Hàm xử lý khi có lỗi Apps Script (ví dụ: mất kết nối)
     function displayError(error) {
-        document.getElementById('search-results').innerHTML = `<p style="color: red;">Lỗi hệ thống: ${error.message}</p>`;
+        document.getElementById('search-results').innerHTML = `<p class="error-text">Lỗi hệ thống Apps Script: ${error.message}</p>`;
     }
   </script>
 </body>
