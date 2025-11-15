@@ -1,6 +1,5 @@
 
 import React from 'react';
-import BackButton from '../BackButton';
 
 interface PoliciesContentProps {
   back: () => void;
@@ -21,7 +20,6 @@ const PoliciesContent: React.FC<PoliciesContentProps> = ({ back }) => {
           <b>Đối với các lô hàng về HCM:</b> bản scan công văn hoàn cược, bản scan phiếu nâng/hạ, UNC cược, gửi về địa chỉ email: <span className="font-mono text-blue-600">doc_hph@kimberryline.com</span> và <span className="font-mono text-blue-600">fin_vn@kimberryline.com</span> <i><strong className="text-red-600">(không yêu cầu bản gốc công văn hoàn cược)</strong></i>
         </li>
       </ol>
-      <BackButton onClick={back} />
     </div>
   );
 };

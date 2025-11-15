@@ -1,6 +1,5 @@
 
 import React from 'react';
-import BackButton from '../BackButton';
 
 interface TemplateContentProps {
   back: () => void;
@@ -18,7 +17,6 @@ const TemplateContent: React.FC<TemplateContentProps> = ({ back }) => {
         <button onClick={downloadTemplate} className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition mr-4">
           ⬇ Tải xuống file
         </button>
-        <BackButton onClick={back} />
       </div>
     </div>
   );

@@ -9,6 +9,7 @@ import TemplateContent from './content/TemplateContent';
 import JobSearchContent from './content/JobSearchContent';
 import SubmissionContent from './content/SubmissionContent';
 import { ViewType } from '../types';
+import BackButton from '../BackButton';
 
 interface MainContentProps {
   activeView: ViewType;
@@ -34,9 +35,12 @@ const MainContent: React.FC<MainContentProps> = ({ activeView, setActiveView }) 
   return (
     <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-8">
       <section className="bg-white rounded-xl p-6 shadow-sm">
-        <h2 className="text-2xl font-bold text-[#184d47] border-b-2 border-[#a8d0a2] pb-2 mb-4">
-          {showDefault ? viewConfig.default.title : title}
-        </h2>
+        <div className="flex justify-between items-center border-b-2 border-[#a8d0a2] pb-2 mb-4">
+          <h2 className="text-2xl font-bold text-[#184d47]">
+            {showDefault ? viewConfig.default.title : title}
+          </h2>
+          {!showDefault && <BackButton onClick={backToDefault} />}
+        </div>
         
         {showDefault && <DefaultContent back={backToDefault} />}
         {!showDefault && <ContentComponent back={backToDefault} />}

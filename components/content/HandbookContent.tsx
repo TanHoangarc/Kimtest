@@ -1,6 +1,5 @@
 
 import React from 'react';
-import BackButton from '../BackButton';
 
 interface HandbookContentProps {
   back: () => void;
@@ -26,7 +25,6 @@ const HandbookContent: React.FC<HandbookContentProps> = ({ back }) => {
         <button onClick={downloadBank} className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition mr-4">
           ⬇ Tải xuống file
         </button>
-        <BackButton onClick={back} />
       </div>
     </div>
   );

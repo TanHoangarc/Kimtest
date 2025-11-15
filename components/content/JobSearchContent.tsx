@@ -1,6 +1,5 @@
 
 import React, { useState } from 'react';
-import BackButton from '../BackButton';
 import { JobData } from '../../types';
 
 interface JobSearchContentProps {
@@ -101,8 +100,6 @@ const JobSearchContent: React.FC<JobSearchContentProps> = ({ back }) => {
           </div>
         )}
       </div>
-
-      <BackButton onClick={back} />
     </div>
   );
 };

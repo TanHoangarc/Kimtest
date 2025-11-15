@@ -1,5 +1,5 @@
+
 import React, { useState, useRef } from 'react';
-import BackButton from '../BackButton';
 
 interface SubmissionContentProps {
   back: () => void;
@@ -127,7 +127,7 @@ const SubmissionContent: React.FC<SubmissionContentProps> = ({ back }) => {
             </div>
         )}
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 pt-2">
             <button
               type="submit"
               disabled={isUploading}
@@ -135,7 +135,6 @@ const SubmissionContent: React.FC<SubmissionContentProps> = ({ back }) => {
             >
               {isUploading ? 'Đang nộp...' : 'Nộp hồ sơ'}
             </button>
-            <BackButton onClick={back} />
         </div>
       </form>
     </div>

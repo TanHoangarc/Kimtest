@@ -1,6 +1,5 @@
 
 import React, { useState } from 'react';
-import BackButton from '../BackButton';
 
 interface TariffContentProps {
   back: () => void;
@@ -61,7 +60,6 @@ const TariffContent: React.FC<TariffContentProps> = ({ back }) => {
             </div>
             {port === 'HCM' && <TariffTable data={dataHCM} />}
             {port === 'HPH' && <TariffTable data={dataHPH} />}
-            <BackButton onClick={back} />
         </div>
     );
 };
