@@ -9,6 +9,15 @@
 import { put } from '@vercel/blob';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
+// By disabling the body parser, we can stream the file directly to Vercel Blob.
+// This is crucial for handling binary files like PDFs.
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
+
 export default async function handler(
   request: VercelRequest,
   response: VercelResponse,
@@ -26,19 +35,14 @@ export default async function handler(
   if (!filename || !jobId) {
     return response.status(400).json({ error: 'Filename and JobId query parameters are required' });
   }
-
-  // The request body will be the raw file contents
-  const fileBody = request.body;
-  if (!fileBody) {
-    return response.status(400).json({ error: 'Request body is empty' });
-  }
   
   try {
     // Construct a unique path for the blob
     const blobPath = `submissions/${jobId}/${filename}`;
 
-    // Upload the file to Vercel Blob
-    const blob = await put(blobPath, fileBody, {
+    // Upload the file to Vercel Blob. The `request` object itself is a ReadableStream
+    // containing the file data, which `put` can handle directly.
+    const blob = await put(blobPath, request, {
       access: 'public', // 'public' makes the file accessible via its URL
     });
 
