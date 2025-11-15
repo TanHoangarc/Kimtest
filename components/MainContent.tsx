@@ -8,8 +8,10 @@ import PoliciesContent from './content/PoliciesContent';
 import TemplateContent from './content/TemplateContent';
 import JobSearchContent from './content/JobSearchContent';
 import SubmissionContent from './content/SubmissionContent';
+import AdminPanelContent from './content/AdminPanelContent';
+import DataEntryContent from './content/DataEntryContent';
 import { ViewType } from '../types';
-import BackButton from '../BackButton';
+import BackButton from './BackButton';
 
 interface MainContentProps {
   activeView: ViewType;
@@ -24,6 +26,8 @@ const viewConfig: Record<ViewType, { title: string; component: React.FC<{ back: 
   template: { title: 'File mẫu CVHC', component: TemplateContent },
   marketing: { title: 'Tra cứu Job', component: JobSearchContent },
   submission: { title: 'Nộp hồ sơ', component: SubmissionContent },
+  admin: { title: 'Quản lý Người dùng', component: AdminPanelContent },
+  dataEntry: { title: 'Nhập liệu & Cập nhật Job', component: DataEntryContent },
 };
 
 const MainContent: React.FC<MainContentProps> = ({ activeView, setActiveView }) => {
