@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import BackButton from '../BackButton';
 
@@ -6,17 +5,14 @@ interface SubmissionContentProps {
   back: () => void;
 }
 
-// IMPORTANT: To make this work outside your local network (LAN),
-// you must expose your server to the internet and replace 'http://localhost:3000'
-// with your server's public URL.
-// A tool like ngrok (https://ngrok.com/) can help you create a public URL for your local server for testing.
-const SERVER_URL = 'http://localhost:3000';
+// The new endpoint for our Vercel Serverless Function
+const UPLOAD_API_ENDPOINT = '/api/upload';
 
 const SubmissionContent: React.FC<SubmissionContentProps> = ({ back }) => {
   const [jobId, setJobId] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadStatus, setUploadStatus] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<{ type: 'success' | 'error' | 'info'; message: string, url?: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,25 +30,31 @@ const SubmissionContent: React.FC<SubmissionContentProps> = ({ back }) => {
     }
 
     setIsUploading(true);
-    setUploadStatus({ type: 'info', message: 'Đang tải file lên...' });
+    setUploadStatus({ type: 'info', message: 'Đang tải file lên Vercel Blob...' });
 
-    const formData = new FormData();
-    formData.append('jobId', jobId);
-    formData.append('file', selectedFile);
+    // We pass jobId and filename as query parameters
+    const searchParams = new URLSearchParams({
+        jobId: jobId,
+        filename: selectedFile.name
+    });
 
     try {
-      const response = await fetch(`${SERVER_URL}/upload`, {
+      const response = await fetch(`${UPLOAD_API_ENDPOINT}?${searchParams.toString()}`, {
         method: 'POST',
-        body: formData,
+        body: selectedFile, // The raw file is sent as the body
       });
 
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || 'Có lỗi xảy ra khi tải file.');
+        throw new Error(result.error || 'Có lỗi xảy ra khi tải file.');
       }
       
-      setUploadStatus({ type: 'success', message: 'Tải file lên thành công! ' + result.message });
+      setUploadStatus({ 
+        type: 'success', 
+        message: result.message || 'Tải file lên thành công!',
+        url: result.url
+      });
       setJobId('');
       setSelectedFile(null);
       if(fileInputRef.current) {
@@ -62,7 +64,7 @@ const SubmissionContent: React.FC<SubmissionContentProps> = ({ back }) => {
     } catch (error) {
         const err = error as Error;
         console.error('Upload error:', err);
-        setUploadStatus({ type: 'error', message: `Không thể kết nối đến server tại ${SERVER_URL}. Vui lòng kiểm tra lại URL và đảm bảo server của bạn đang chạy và có thể truy cập từ internet.` });
+        setUploadStatus({ type: 'error', message: `Tải file thất bại: ${err.message}` });
     } finally {
       setIsUploading(false);
     }
@@ -76,7 +78,7 @@ const SubmissionContent: React.FC<SubmissionContentProps> = ({ back }) => {
 
   return (
     <div>
-      <p className="mb-4">Nộp hồ sơ liên quan đến một Job ID cụ thể. Vui lòng điền thông tin và tải lên file của bạn.</p>
+      <p className="mb-4">Nộp hồ sơ lên Vercel Blob. Vui lòng điền thông tin và tải lên file của bạn.</p>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="jobId" className="block text-sm font-medium text-gray-700 mb-1">
@@ -114,6 +116,14 @@ const SubmissionContent: React.FC<SubmissionContentProps> = ({ back }) => {
         {uploadStatus && (
             <div className={`p-3 rounded-md border ${statusColor[uploadStatus.type]}`}>
                 <p>{uploadStatus.message}</p>
+                {uploadStatus.url && (
+                    <p className="mt-2">
+                        <span className="font-semibold">URL file:</span>{' '}
+                        <a href={uploadStatus.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline break-all">
+                            {uploadStatus.url}
+                        </a>
+                    </p>
+                )}
             </div>
         )}
 
