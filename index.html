@@ -1,106 +1,25 @@
+
 <!DOCTYPE html>
-<html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <title>Tra cứu thông tin Kimberry</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background-color: #F4F4F4;
-      margin: 0;
-      padding: 40px;
-    }
-    .container {
-      max-width: 500px;
-      background: #fff;
-      margin: 0 auto;
-      padding: 30px;
-      border-radius: 16px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
-    }
-    h2 {
-      text-align: center;
-      color: #333;
-      margin-bottom: 25px;
-    }
-    input[type=text] {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      margin-bottom: 15px;
-      font-size: 15px;
-    }
-    button {
-      width: 100%;
-      background-color: #5C9EAD;
-      border: none;
-      color: white;
-      padding: 10px;
-      font-size: 16px;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #A8D0A2;
-    }
-    .result {
-      margin-top: 25px;
-      padding: 15px;
-      background: #eef5ff;
-      border-radius: 10px;
-      line-height: 1.6;
-      color: #333;
-      white-space: pre-line;
-    }
-    .error {
-      color: red;
-      font-weight: bold;
-    }
-  </style>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Hub - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
 </head>
-<body>
-  <div class="container">
-    <h2>🔍 Tra cứu thông tin Kimberry</h2>
-    <input type="text" id="searchValue" placeholder="Nhập mã HBL hoặc số cần tìm...">
-    <button onclick="searchData()">Tìm kiếm</button>
-    <div id="result" class="result"></div>
-  </div>
-
-  <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbx7-f_QrfEFjrz1Hww2LvuIZ95XD2JPXuFkvPvQEuevZ2IFiTyEdB32ueVFUJj6L9jIEA/exec";
-
-    async function searchData() {
-      const value = document.getElementById("searchValue").value.trim();
-      const resultDiv = document.getElementById("result");
-
-      if (!value) {
-        resultDiv.innerHTML = '<span class="error">⚠️ Vui lòng nhập mã cần tra cứu.</span>';
-        return;
-      }
-
-      resultDiv.innerHTML = "⏳ Đang tra cứu dữ liệu...";
-
-      try {
-        const response = await fetch(`${scriptURL}?value=${encodeURIComponent(value)}`);
-        const data = await response.json();
-
-        if (!data || Object.keys(data).length === 0) {
-          resultDiv.innerHTML = '<span class="error">❌ Không tìm thấy dữ liệu.</span>';
-          return;
-        }
-
-        resultDiv.innerHTML =
-          "📦 <b>HBL:</b> " + data.hbl + "\n" +
-          "🧾 <b>Lcc:</b> " + data.lcc + "\n" +
-          "🏗️ <b>Depo:</b> " + data.depo + "\n" +
-          "📅 <b>Date cược:</b> " + data.dateCuoc + "\n" +
-          "📆 <b>Date hoàn:</b> " + data.dateHoan;
-      } catch (error) {
-        resultDiv.innerHTML = '<span class="error">🚫 Lỗi khi kết nối server.</span>';
-      }
-    }
-  </script>
+  <body class="bg-gray-100">
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
 </body>
 </html>

@@ -1,0 +1,108 @@
+
+import React, { useState, useEffect } from 'react';
+
+const monthsVN = [
+  "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
+  "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"
+];
+const dayNames = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+
+const Calendar: React.FC = () => {
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [days, setDays] = useState<React.ReactNode[]>([]);
+
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+
+  useEffect(() => {
+    renderCalendar(year, month);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentDate]);
+
+  const renderCalendar = (year: number, month: number) => {
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const prevMonthDays = new Date(year, month, 0).getDate();
+    const today = new Date();
+    
+    const calendarDays: React.ReactNode[] = [];
+
+    for (let i = firstDay - 1; i >= 0; i--) {
+      calendarDays.push(
+        <div key={`prev-${i}`} className="p-3 text-center rounded-full text-gray-300">
+          {prevMonthDays - i}
+        </div>
+      );
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+      const isSunday = new Date(year, month, d).getDay() === 0;
+      calendarDays.push(
+        <div
+          key={`current-${d}`}
+          className={`
+            p-3 text-center rounded-full transition-all duration-200
+            ${isToday ? 'bg-[#5c9ead] text-white font-bold' : ''}
+            ${!isToday ? 'hover:bg-[#a8d0a2] hover:text-white cursor-pointer' : ''}
+            ${isSunday && !isToday ? 'text-red-500' : ''}
+          `}
+        >
+          {d}
+        </div>
+      );
+    }
+
+    const totalCells = firstDay + daysInMonth;
+    const remaining = 42 - totalCells;
+    for (let d = 1; d <= remaining; d++) {
+        calendarDays.push(
+            <div key={`next-${d}`} className="p-3 text-center rounded-full text-gray-300">
+                {d}
+            </div>
+        );
+    }
+    setDays(calendarDays);
+  };
+
+  const handleMonthChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setCurrentDate(new Date(year, parseInt(e.target.value), 1));
+  };
+  
+  const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setCurrentDate(new Date(parseInt(e.target.value), month, 1));
+  };
+
+  return (
+    <div className="bg-white rounded-2xl shadow-lg p-5 w-full font-sans text-gray-800">
+      <div className="flex justify-center gap-3 mb-5">
+        <select value={month} onChange={handleMonthChange} className="border-none bg-gray-100 rounded-lg p-2 text-sm font-semibold outline-none cursor-pointer w-full">
+          {monthsVN.map((m, i) => <option key={i} value={i}>{m}</option>)}
+        </select>
+        <select value={year} onChange={handleYearChange} className="border-none bg-gray-100 rounded-lg p-2 text-sm font-semibold outline-none cursor-pointer w-full">
+          {Array.from({ length: 7 }, (_, i) => new Date().getFullYear() - 3 + i).map(y => <option key={y} value={y}>{y}</option>)}
+        </select>
+      </div>
+      <div className="grid grid-cols-7 text-center gap-2">
+        {dayNames.map((day, index) => (
+          <div key={day} className={`font-bold text-gray-500 text-xs ${index === 0 ? 'text-red-500' : ''}`}>{day}</div>
+        ))}
+        {days}
+      </div>
+      <div className="mt-5 text-left bg-[#ceffe5] rounded-xl p-4 border border-gray-200">
+        <h3 className="font-bold text-gray-800 text-base mb-2">🗒️ Thông báo</h3>
+        <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
+          <li>Lịch làm việc của Kimberry từ T2-T6, sáng T7 hàng tuần.</li>
+          <li>Kimberry sẽ Hoàn cược 1-2 tuần khi nhận được hồ sơ hoàn cược.</li>
+          <li>
+            Thông báo nghỉ Tết.<br />
+            - Thời gian nghỉ: <b>14/02/2026</b> (Dương lịch).<br />
+            - Thời làm lại: <b>23/02/2026</b> (Dương lịch)
+          </li>
+        </ul>
+      </div>
+    </div>
+  );
+};
+
+export default Calendar;
