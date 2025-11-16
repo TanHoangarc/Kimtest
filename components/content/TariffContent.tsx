@@ -60,6 +60,18 @@ const TariffContent: React.FC<TariffContentProps> = ({ back }) => {
             </div>
             {port === 'HCM' && <TariffTable data={dataHCM} />}
             {port === 'HPH' && <TariffTable data={dataHPH} />}
+            {port && (
+                <div className="mt-6 text-center">
+                    <a
+                        href="https://www.kimberryline.com/Company_Show/index/import"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 hover:underline font-semibold"
+                    >
+                        Xem thêm chi tiết biểu phí tại trang chủ Kimberryline
+                    </a>
+                </div>
+            )}
         </div>
     );
 };

@@ -25,7 +25,7 @@ const viewConfig: Record<ViewType, { title: string; component: React.FC<{ back: 
   policies: { title: 'Hồ sơ Hoàn cược', component: PoliciesContent },
   template: { title: 'File mẫu CVHC', component: TemplateContent },
   marketing: { title: 'Tra cứu Job', component: JobSearchContent },
-  submission: { title: 'Nộp hồ sơ', component: SubmissionContent },
+  submission: { title: 'Nộp hồ sơ hoàn cược', component: SubmissionContent },
   admin: { title: 'Quản lý Người dùng', component: AdminPanelContent },
   dataEntry: { title: 'Nhập liệu & Cập nhật Job', component: DataEntryContent },
 };

@@ -39,7 +39,7 @@ const Navbar: React.FC<NavbarProps> = ({ setActiveView }) => {
       <NavButton onClick={() => setActiveView('policies')}>Hồ sơ Hoàn cược</NavButton>
       <NavButton onClick={() => setActiveView('template')}>File mẫu CVHC</NavButton>
       <NavButton onClick={() => setActiveView('marketing')}>Tra cứu Job</NavButton>
-      <NavButton onClick={() => setActiveView('submission')}>Nộp hồ sơ</NavButton>
+      <NavButton onClick={() => setActiveView('submission')}>Nộp hồ sơ hoàn cược</NavButton>
       {isAdmin && (
         <>
           <NavButton onClick={() => setActiveView('admin')} isAdmin={true}>

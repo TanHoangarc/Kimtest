@@ -14,21 +14,18 @@ const JobSearchContent: React.FC<JobSearchContentProps> = ({ back }) => {
   const [result, setResult] = useState<JobData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [resultSource, setResultSource] = useState<'local' | 'sheet' | null>(null);
 
   const handleSearch = async () => {
     const trimmedQuery = query.trim();
     if (!trimmedQuery) {
       setError("⚠️ Vui lòng nhập mã HBL hoặc Job cần tra cứu.");
       setResult(null);
-      setResultSource(null);
       return;
     }
 
     setIsLoading(true);
     setError(null);
     setResult(null);
-    setResultSource(null);
     
     // 1. Check local storage first
     try {
@@ -38,7 +35,6 @@ const JobSearchContent: React.FC<JobSearchContentProps> = ({ back }) => {
             const foundJob = localJobs.find(job => job.Ma?.trim().toLowerCase() === trimmedQuery.toLowerCase());
             if (foundJob) {
                 setResult(foundJob);
-                setResultSource('local');
                 setIsLoading(false);
                 return; // Found in local data, so we stop here.
             }
@@ -66,7 +62,6 @@ const JobSearchContent: React.FC<JobSearchContentProps> = ({ back }) => {
         setError(`❌ Không tìm thấy dữ liệu cho mã: ${trimmedQuery}`);
       } else {
         setResult(searchResult);
-        setResultSource('sheet');
       }
 
     } catch (err) {
@@ -99,22 +94,21 @@ const JobSearchContent: React.FC<JobSearchContentProps> = ({ back }) => {
         </button>
       </div>
 
+      <p className="text-sm text-gray-500 mb-4">
+        Số HBL KIMBERRY có dạng KML.... vui lòng nhập đúng định dạng số HBL.
+      </p>
+
       <div id="resultArea" className="mt-4 text-sm">
         {isLoading && <p>⏳ Đang tìm kiếm dữ liệu...</p>}
         {error && <p className="text-red-600 font-semibold">{error}</p>}
         {result && (
           <>
-            {resultSource === 'local' && (
-                <div className="p-3 mb-4 bg-blue-100 text-blue-800 border border-blue-300 rounded-md text-center">
-                    ℹ️ Hiển thị dữ liệu từ <strong>Bảng tạm</strong>. Dữ liệu này có thể chưa được cập nhật lên Google Sheet.
-                </div>
-            )}
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <tbody>
                   {Object.entries({
                       "Tháng": result.Thang,
-                      "Mã Job": result.Ma,
+                      "Mã Job/HBL": result.Ma,
                       "Local Charge": result.MaKH,
                       "Tiền Cược": result.SoTien,
                       "Nhận Lcc": result.TrangThai,

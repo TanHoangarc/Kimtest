@@ -25,12 +25,12 @@ const SubmissionContent: React.FC<SubmissionContentProps> = ({ back }) => {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!jobId || !selectedFile) {
-      setUploadStatus({ type: 'error', message: 'Vui lòng nhập Job ID và chọn một file.' });
+      setUploadStatus({ type: 'error', message: 'Vui lòng nhập HBL và chọn một file.' });
       return;
     }
 
     setIsUploading(true);
-    setUploadStatus({ type: 'info', message: 'Đang tải file lên Vercel Blob...' });
+    setUploadStatus({ type: 'info', message: 'Đang tải file lên hệ thống...' });
 
     // We pass jobId and filename as query parameters
     const searchParams = new URLSearchParams({
@@ -78,7 +78,7 @@ const SubmissionContent: React.FC<SubmissionContentProps> = ({ back }) => {
 
   return (
     <div>
-      <p className="mb-4">Nộp hồ sơ lên Vercel Blob. Vui lòng điền thông tin và tải lên file của bạn.</p>
+      <p className="mb-4">Nộp hồ sơ hoàn cược. Vui lòng điền đúng thông tin số HBL có dạng KML.... và tải lên file của bạn.</p>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="jobId" className="block text-sm font-medium text-gray-700 mb-1">
@@ -89,7 +89,7 @@ const SubmissionContent: React.FC<SubmissionContentProps> = ({ back }) => {
             id="jobId"
             value={jobId}
             onChange={(e) => setJobId(e.target.value)}
-            placeholder="Nhập mã Job..."
+            placeholder="Nhập số HBL..."
             className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#5c9ead] focus:border-transparent outline-none"
             required
           />
