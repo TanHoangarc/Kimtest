@@ -16,7 +16,7 @@ const Calendar: React.FC = () => {
 
   useEffect(() => {
     renderCalendar(year, month);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable--next-line react-hooks/exhaustive-deps
   }, [currentDate]);
 
   const renderCalendar = (year: number, month: number) => {
@@ -73,15 +73,31 @@ const Calendar: React.FC = () => {
     setCurrentDate(new Date(parseInt(e.target.value), month, 1));
   };
 
+  const handlePrevMonth = () => {
+    setCurrentDate(new Date(year, month - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    setCurrentDate(new Date(year, month + 1, 1));
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-lg p-5 w-full font-sans text-gray-800">
-      <div className="flex justify-center gap-3 mb-5">
-        <select value={month} onChange={handleMonthChange} className="border-none bg-gray-100 rounded-lg p-2 text-sm font-semibold outline-none cursor-pointer w-full">
-          {monthsVN.map((m, i) => <option key={i} value={i}>{m}</option>)}
-        </select>
-        <select value={year} onChange={handleYearChange} className="border-none bg-gray-100 rounded-lg p-2 text-sm font-semibold outline-none cursor-pointer w-full">
-          {Array.from({ length: 7 }, (_, i) => new Date().getFullYear() - 3 + i).map(y => <option key={y} value={y}>{y}</option>)}
-        </select>
+      <div className="flex items-center justify-between gap-3 mb-5">
+        <button onClick={handlePrevMonth} className="p-2 rounded-full hover:bg-gray-200 transition-colors flex-shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+        </button>
+        <div className="flex justify-center gap-3 w-full">
+            <select value={month} onChange={handleMonthChange} className="border-none bg-gray-100 rounded-lg p-2 text-sm font-semibold outline-none cursor-pointer w-full">
+                {monthsVN.map((m, i) => <option key={i} value={i}>{m}</option>)}
+            </select>
+            <select value={year} onChange={handleYearChange} className="border-none bg-gray-100 rounded-lg p-2 text-sm font-semibold outline-none cursor-pointer w-full">
+                {Array.from({ length: 7 }, (_, i) => new Date().getFullYear() - 3 + i).map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
+        </div>
+        <button onClick={handleNextMonth} className="p-2 rounded-full hover:bg-gray-200 transition-colors flex-shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" /></svg>
+        </button>
       </div>
       <div className="grid grid-cols-7 text-center gap-2">
         {dayNames.map((day, index) => (

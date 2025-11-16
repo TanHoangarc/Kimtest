@@ -118,7 +118,7 @@ const JobSearchContent: React.FC<JobSearchContentProps> = ({ back }) => {
                       <tr key={key} className="border-b">
                           <td className="p-2 font-bold bg-gray-100 w-1/3">{key}</td>
                           <td className="p-2">
-                            {typeof value === 'number' ? value.toLocaleString('vi-VN') : (value || "-")}
+                            {typeof value === 'number' ? value.toLocaleString('en-US') : (value || "-")}
                           </td>
                       </tr>
                   ))}
