@@ -21,6 +21,16 @@ const initialFormData: JobData = {
     NoiDung2: '',
 };
 
+const formFields = [
+    { name: "Thang", label: "Tháng", type: "select", options: ['', ...Array.from({ length: 12 }, (_, i) => `Tháng ${i + 1}`)] },
+    { name: "Ma", label: "Mã Job (*)", type: "text", required: true },
+    { name: "MaKH", label: "Local Charge", type: "text", inputMode: "decimal" as const },
+    { name: "SoTien", label: "Tiền Cược", type: "text", inputMode: "decimal" as const },
+    { name: "TrangThai", label: "Nhận Lcc", type: "text" },
+    { name: "NoiDung1", label: "Nhận Cược", type: "text" },
+    { name: "NoiDung2", label: "Hoàn cược", type: "text" },
+];
+
 const DataEntryContent: React.FC<DataEntryContentProps> = ({ back }) => {
     const [formData, setFormData] = useState<JobData>(initialFormData);
     const [jobEntries, setJobEntries] = useState<JobData[]>([]);
@@ -49,7 +59,7 @@ const DataEntryContent: React.FC<DataEntryContentProps> = ({ back }) => {
     }, [jobEntries]);
 
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
 
         if (name === 'MaKH' || name === 'SoTien') {
@@ -198,16 +208,6 @@ const DataEntryContent: React.FC<DataEntryContentProps> = ({ back }) => {
             setStatus({ type: 'error', message: "Đã xảy ra lỗi khi tạo file Excel." });
         }
     };
-
-    const formFields = [
-        { name: "Thang", label: "Tháng", type: "text" },
-        { name: "Ma", label: "Mã Job (*)", type: "text", required: true },
-        { name: "MaKH", label: "Local Charge", type: "text", inputMode: "decimal" as const },
-        { name: "SoTien", label: "Tiền Cược", type: "text", inputMode: "decimal" as const },
-        { name: "TrangThai", label: "Nhận Lcc", type: "text" },
-        { name: "NoiDung1", label: "Nhận Cược", type: "text" },
-        { name: "NoiDung2", label: "Hoàn cược", type: "text" },
-    ];
     
     const statusColor = {
         success: 'text-green-600 bg-green-100 border-green-300',
@@ -278,6 +278,49 @@ const DataEntryContent: React.FC<DataEntryContentProps> = ({ back }) => {
                                                 aria-label={`Chọn ngày cho ${field.label}`}
                                             />
                                         </div>
+                                    </div>
+                                </div>
+                            );
+                        }
+                        if (field.type === 'select') {
+                            return (
+                                <div key={field.name}>
+                                    <label htmlFor={field.name} className="block text-sm font-medium text-gray-700">{field.label}</label>
+                                    <select
+                                        id={field.name}
+                                        name={field.name}
+                                        value={(formData as any)[field.name] ?? ''}
+                                        onChange={handleInputChange}
+                                        className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#5c9ead] focus:border-[#5c9ead] bg-white"
+                                    >
+                                        {(field.options as string[]).map((option: string) => (
+                                            <option key={option} value={option}>{option || "--- Chọn tháng ---"}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            );
+                        }
+                        if (field.name === 'TrangThai') {
+                            return (
+                                <div key={field.name}>
+                                    <label htmlFor={field.name} className="block text-sm font-medium text-gray-700">{field.label}</label>
+                                    <div className="mt-1 flex items-center gap-2">
+                                        <input
+                                            type={field.type}
+                                            id={field.name}
+                                            name={field.name}
+                                            value={(formData as any)[field.name] ?? ''}
+                                            onChange={handleInputChange}
+                                            className="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#5c9ead] focus:border-[#5c9ead]"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setFormData(prev => ({ ...prev, TrangThai: "Đã nhận thanh toán lcc" }))}
+                                            className="px-3 py-2 bg-green-600 text-white text-xs font-semibold rounded-md hover:bg-green-700 transition whitespace-nowrap flex-shrink-0"
+                                            title="Đánh dấu là 'Đã nhận thanh toán lcc'"
+                                        >
+                                            Hoàn thành
+                                        </button>
                                     </div>
                                 </div>
                             );
