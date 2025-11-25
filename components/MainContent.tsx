@@ -12,6 +12,7 @@ import AdminPanelContent from './content/AdminPanelContent';
 import DataEntryContent from './content/DataEntryContent';
 import MblPaymentContent from './content/MblPaymentContent';
 import FileManagerContent from './content/FileManagerContent';
+import AiToolContent from './content/AiToolContent';
 import { ViewType } from '../types';
 import BackButton from './BackButton';
 
@@ -32,6 +33,7 @@ const viewConfig: Record<ViewType, { title: string; component: React.FC<{ back: 
   dataEntry: { title: 'Nhập liệu & Cập nhật Job', component: DataEntryContent },
   mblPayment: { title: 'Thanh toán MBL', component: MblPaymentContent },
   fileManager: { title: 'Quản lý File Storage', component: FileManagerContent },
+  aiTool: { title: 'Công cụ AI - Chuyển hình ảnh thành văn bản', component: AiToolContent },
 };
 
 const MainContent: React.FC<MainContentProps> = ({ activeView, setActiveView }) => {

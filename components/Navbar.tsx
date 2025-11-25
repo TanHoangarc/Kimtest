@@ -11,11 +11,14 @@ const NavButton: React.FC<{
   children: React.ReactNode, 
   isAdmin?: boolean;
   isSpecial?: boolean;
-}> = ({ onClick, children, isAdmin = false, isSpecial = false }) => {
+  isAi?: boolean;
+}> = ({ onClick, children, isAdmin = false, isSpecial = false, isAi = false }) => {
     const baseClasses = "font-semibold m-2 px-5 py-3 rounded-lg text-sm transition-colors duration-300 shadow-sm";
     let colorClasses = "";
 
-    if (isAdmin) {
+    if (isAi) {
+        colorClasses = 'bg-indigo-600 text-white hover:bg-indigo-700';
+    } else if (isAdmin) {
         colorClasses = 'bg-red-600 text-white hover:bg-red-700';
     } else if (isSpecial) {
         colorClasses = 'bg-amber-500 text-white hover:bg-amber-600';
@@ -84,6 +87,9 @@ const Navbar: React.FC<NavbarProps> = ({ setActiveView }) => {
           </NavButton>
           <NavButton onClick={() => setActiveView('fileManager')} isAdmin={true}>
             📂 File
+          </NavButton>
+          <NavButton onClick={() => setActiveView('aiTool')} isAi={true}>
+            🤖 Tool AI
           </NavButton>
           <NavButton onClick={() => setActiveView('admin')} isAdmin={true}>
             ⚙️ Cài đặt
