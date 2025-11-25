@@ -12,11 +12,15 @@ interface FileManagerContentProps {
     back: () => void;
 }
 
+const FOLDERS = ['CVHC', 'MBL', 'DONE'];
+
 const FileManagerContent: React.FC<FileManagerContentProps> = ({ back }) => {
-    const [files, setFiles] = useState<BlobFile[]>([]);
+    const [allFiles, setAllFiles] = useState<BlobFile[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [status, setStatus] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
-    
+    const [currentFolder, setCurrentFolder] = useState<string | null>(null);
+    const [downloadingUrl, setDownloadingUrl] = useState<string | null>(null);
+
     // Preview Modal State
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [previewType, setPreviewType] = useState<'image' | 'pdf' | 'other'>('other');
@@ -28,7 +32,6 @@ const FileManagerContent: React.FC<FileManagerContentProps> = ({ back }) => {
         const apiEndpoint = '/api/store';
 
         try {
-            // Use POST instead of GET to avoid query parameter routing issues (404s)
             const res = await fetch(apiEndpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -39,7 +42,7 @@ const FileManagerContent: React.FC<FileManagerContentProps> = ({ back }) => {
                 const data = await res.json();
                 // Filter out the JSON database files to prevent accidental deletion
                 const validFiles = (data.files || []).filter((f: BlobFile) => !f.pathname.startsWith('db/'));
-                setFiles(validFiles);
+                setAllFiles(validFiles);
                 setStatus(null);
             } else {
                 let errorMsg = `Lỗi ${res.status}`;
@@ -82,7 +85,7 @@ const FileManagerContent: React.FC<FileManagerContentProps> = ({ back }) => {
             });
 
             if (res.ok) {
-                setFiles(prev => prev.filter(f => f.url !== file.url));
+                setAllFiles(prev => prev.filter(f => f.url !== file.url));
                 setStatus({ type: 'success', message: 'Đã xóa file thành công.' });
             } else {
                 const err = await res.json();
@@ -91,6 +94,38 @@ const FileManagerContent: React.FC<FileManagerContentProps> = ({ back }) => {
         } catch (error) {
             const e = error as Error;
             setStatus({ type: 'error', message: e.message });
+        }
+    };
+
+    const handleForceDownload = async (file: BlobFile) => {
+        setDownloadingUrl(file.url);
+        setStatus({ type: 'info', message: `Đang tải xuống ${file.pathname}...` });
+        
+        try {
+            const response = await fetch(file.url);
+            if (!response.ok) throw new Error("Không thể tải file từ server.");
+            
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            
+            // Extract filename from pathname
+            const filename = file.pathname.split('/').pop() || 'downloaded_file';
+            a.download = filename;
+            
+            document.body.appendChild(a);
+            a.click();
+            
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            setStatus({ type: 'success', message: 'Tải xuống hoàn tất.' });
+        } catch (error) {
+            console.error(error);
+            setStatus({ type: 'error', message: 'Lỗi tải xuống. Vui lòng thử lại.' });
+        } finally {
+            setDownloadingUrl(null);
         }
     };
 
@@ -120,10 +155,30 @@ const FileManagerContent: React.FC<FileManagerContentProps> = ({ back }) => {
         info: 'text-blue-600 bg-blue-100 border-blue-300',
     };
 
+    // --- RENDER LOGIC ---
+
+    // 1. Filter files based on current folder
+    const displayedFiles = currentFolder 
+        ? allFiles.filter(f => f.pathname.startsWith(`${currentFolder}/`))
+        : [];
+
     return (
-        <div className="space-y-6 relative">
-            <div className="flex justify-between items-center">
-                <p className="text-gray-600">Quản lý tất cả các file đã tải lên Vercel Blob.</p>
+        <div className="space-y-6 relative min-h-[500px]">
+            <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm border">
+                <div className="flex items-center gap-2">
+                    <button 
+                        onClick={() => setCurrentFolder(null)}
+                        className={`text-gray-600 hover:text-blue-600 font-semibold ${!currentFolder ? 'text-blue-600' : ''}`}
+                    >
+                        📁 Thư mục gốc
+                    </button>
+                    {currentFolder && (
+                        <>
+                            <span className="text-gray-400">/</span>
+                            <span className="font-bold text-[#184d47]">{currentFolder}</span>
+                        </>
+                    )}
+                </div>
                 <button 
                     onClick={fetchFiles} 
                     disabled={isLoading}
@@ -136,66 +191,87 @@ const FileManagerContent: React.FC<FileManagerContentProps> = ({ back }) => {
 
             {status && <div className={`p-3 rounded-md border ${statusColor[status.type]}`}>{status.message}</div>}
 
-            <div className="border rounded-lg bg-white overflow-hidden shadow-sm">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left">
-                        <thead className="bg-gray-100 text-gray-700">
-                            <tr>
-                                <th className="p-3 font-semibold">Tên File (Path)</th>
-                                <th className="p-3 font-semibold">Kích thước</th>
-                                <th className="p-3 font-semibold">Ngày tải lên</th>
-                                <th className="p-3 font-semibold text-right">Hành động</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {files.map((file) => (
-                                <tr key={file.url} className="border-b hover:bg-gray-50 last:border-0">
-                                    <td className="p-3">
-                                        <div className="flex flex-col">
-                                            <span className="font-medium text-gray-800 break-all">{file.pathname}</span>
-                                            <a href={file.url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline mt-1 truncate max-w-xs">{file.url}</a>
-                                        </div>
-                                    </td>
-                                    <td className="p-3 whitespace-nowrap">{formatSize(file.size)}</td>
-                                    <td className="p-3 whitespace-nowrap">{new Date(file.uploadedAt).toLocaleDateString('vi-VN')}</td>
-                                    <td className="p-3 text-right whitespace-nowrap">
-                                        <div className="flex justify-end items-center gap-2">
-                                            <button 
-                                                onClick={() => handlePreview(file)}
-                                                className="px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-xs font-semibold"
-                                            >
-                                                Xem
-                                            </button>
-                                            <a 
-                                                href={file.url} 
-                                                download 
-                                                className="px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 text-xs font-semibold flex items-center"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                            >
-                                                ⬇ Tải
-                                            </a>
-                                            <button 
-                                                onClick={() => handleDelete(file)}
-                                                className="px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 text-xs font-semibold"
-                                            >
-                                                Xóa
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                            {files.length === 0 && !isLoading && (
-                                <tr>
-                                    <td colSpan={4} className="p-4 text-center text-gray-500">
-                                        {status && status.type === 'error' ? 'Không thể kết nối API.' : 'Thư mục trống hoặc không có file nào (trừ file hệ thống).'}
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+            {!currentFolder ? (
+                // --- FOLDER VIEW ---
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    {FOLDERS.map(folder => {
+                        const count = allFiles.filter(f => f.pathname.startsWith(`${folder}/`)).length;
+                        return (
+                            <div 
+                                key={folder}
+                                onClick={() => setCurrentFolder(folder)}
+                                className="bg-white p-6 rounded-xl shadow-md border border-gray-100 cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all flex flex-col items-center text-center group"
+                            >
+                                <div className="text-6xl mb-4 group-hover:scale-110 transition-transform">📂</div>
+                                <h3 className="text-xl font-bold text-gray-800">{folder}</h3>
+                                <p className="text-gray-500 text-sm mt-2">{count} files</p>
+                            </div>
+                        );
+                    })}
                 </div>
-            </div>
+            ) : (
+                // --- FILE LIST VIEW ---
+                <div className="border rounded-lg bg-white overflow-hidden shadow-sm animate-fade-in">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                            <thead className="bg-gray-100 text-gray-700">
+                                <tr>
+                                    <th className="p-3 font-semibold">Tên File</th>
+                                    <th className="p-3 font-semibold">Kích thước</th>
+                                    <th className="p-3 font-semibold">Ngày tải lên</th>
+                                    <th className="p-3 font-semibold text-right">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {displayedFiles.map((file) => (
+                                    <tr key={file.url} className="border-b hover:bg-gray-50 last:border-0">
+                                        <td className="p-3">
+                                            <div className="flex flex-col">
+                                                <span className="font-medium text-gray-800 break-all">
+                                                    {file.pathname.replace(`${currentFolder}/`, '')}
+                                                </span>
+                                                <a href={file.url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline mt-1 truncate max-w-xs">{file.url}</a>
+                                            </div>
+                                        </td>
+                                        <td className="p-3 whitespace-nowrap">{formatSize(file.size)}</td>
+                                        <td className="p-3 whitespace-nowrap">{new Date(file.uploadedAt).toLocaleDateString('vi-VN')}</td>
+                                        <td className="p-3 text-right whitespace-nowrap">
+                                            <div className="flex justify-end items-center gap-2">
+                                                <button 
+                                                    onClick={() => handlePreview(file)}
+                                                    className="px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-xs font-semibold"
+                                                >
+                                                    Xem
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleForceDownload(file)}
+                                                    disabled={downloadingUrl === file.url}
+                                                    className="px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 text-xs font-semibold flex items-center disabled:opacity-50"
+                                                >
+                                                    {downloadingUrl === file.url ? '...' : '⬇ Tải'}
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleDelete(file)}
+                                                    className="px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 text-xs font-semibold"
+                                                >
+                                                    Xóa
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                                {displayedFiles.length === 0 && (
+                                    <tr>
+                                        <td colSpan={4} className="p-8 text-center text-gray-500">
+                                            Thư mục này trống.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
 
             {/* Preview Modal */}
             {previewUrl && (
@@ -232,6 +308,15 @@ const FileManagerContent: React.FC<FileManagerContentProps> = ({ back }) => {
                     </div>
                 </div>
             )}
+             <style>{`
+                @keyframes fade-in {
+                    from { opacity: 0; transform: translateY(10px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                .animate-fade-in {
+                    animation: fade-in 0.3s ease-out forwards;
+                }
+            `}</style>
         </div>
     );
 };
