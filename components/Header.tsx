@@ -18,7 +18,6 @@ const Header: React.FC<HeaderProps> = ({ onLogout }) => {
 
   useEffect(() => {
     try {
-      // Determine user role to show/hide admin features
       const userEmailRaw = localStorage.getItem('user');
       const allUsersRaw = localStorage.getItem('users');
       if (userEmailRaw && allUsersRaw) {
@@ -38,29 +37,24 @@ const Header: React.FC<HeaderProps> = ({ onLogout }) => {
       console.error("Failed to parse user data in Header:", error);
     }
 
-    // --- New Logic for Persistent Badge Count ---
     const updatePersistentBadgeCount = () => {
       try {
         const submissionsRaw = localStorage.getItem(SUBMISSION_STORAGE_KEY);
         const mblPendingRaw = localStorage.getItem(MBL_PENDING_STORAGE_KEY);
-
         const submissionsCount = submissionsRaw ? JSON.parse(submissionsRaw).length : 0;
         const mblPendingCount = mblPendingRaw ? JSON.parse(mblPendingRaw).length : 0;
-        
         setPersistentBadgeCount(submissionsCount + mblPendingCount);
       } catch (error) {
-        console.error("Failed to calculate persistent badge count:", error);
         setPersistentBadgeCount(0);
       }
     };
 
-    // Set up notification listener for real-time updates
     const updateNotifications = () => {
       setNotifications(getNotifications());
     };
 
-    updateNotifications(); // Initial load for panel
-    updatePersistentBadgeCount(); // Initial calculation for badge
+    updateNotifications();
+    updatePersistentBadgeCount();
 
     window.addEventListener('notifications_updated', updateNotifications);
     window.addEventListener('pending_lists_updated', updatePersistentBadgeCount);
@@ -82,48 +76,58 @@ const Header: React.FC<HeaderProps> = ({ onLogout }) => {
   };
   
   return (
-    <header className="bg-cover bg-center relative text-white text-center py-10 px-5 z-30">
-      <div
-        className="absolute inset-0 bg-no-repeat bg-cover bg-center"
-        style={{ backgroundImage: "url('https://picsum.photos/1200/400?image=1043')" }}
-      ></div>
-      <div className="absolute inset-0 bg-black/50 z-0"></div>
-      
-      <div className="absolute top-4 right-4 z-20 flex items-center gap-4">
-        {isAdmin && (
-          <div className="relative">
-            <button
-              onClick={handleBellClick}
-              className="relative bg-white/20 text-white hover:bg-white/40 p-2 rounded-full transition-colors duration-300"
-              aria-label={`Notifications (${persistentBadgeCount} pending tasks)`}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
-              {persistentBadgeCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
-                  {persistentBadgeCount}
-                </span>
-              )}
-            </button>
-            {isPanelOpen && <NotificationPanel notifications={notifications} onClose={() => setIsPanelOpen(false)} />}
-          </div>
-        )}
+    <div className="flex items-center justify-between w-full md:w-auto gap-8">
+        {/* LOGO AREA */}
+        <div className="flex items-center gap-3">
+             <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-green-400 to-blue-500 flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                K
+             </div>
+             <div>
+                 <h1 className="text-2xl font-bold text-white tracking-wider uppercase font-sans">KIMBERRY</h1>
+                 <p className="text-xs text-green-300 tracking-widest uppercase">Merchant Line</p>
+             </div>
+        </div>
 
-        {onLogout && (
-          <button
-            onClick={onLogout}
-            className="bg-white/20 text-white hover:bg-white/40 font-semibold px-4 py-2 rounded-lg text-sm transition-colors duration-300 backdrop-blur-sm"
-          >
-            Đăng xuất
-          </button>
-        )}
-      </div>
-
-      <h1 className="relative z-10 text-4xl md:text-5xl font-bold text-shadow">
-        Welcome, Kimberryline!
-      </h1>
-    </header>
+        {/* USER CONTROLS (Only visible on mobile here, usually passed to right side) */}
+        {/* For desktop, we might want these on the far right, but the parent layout handles that. 
+            We just render the buttons here. */}
+        <div className="flex items-center gap-4 md:hidden">
+             {/* Mobile simplified controls if needed, but we'll stick to one layout for now */}
+        </div>
+        
+        {/* DESKTOP CONTROLS MOVED TO NAVBAR OR KEPT HERE? 
+            Let's keep them here as part of the "Header" component which is now the Logo Area + User Area
+        */}
+         <div className="hidden md:flex items-center gap-4">
+             {isAdmin && (
+              <div className="relative">
+                <button
+                  onClick={handleBellClick}
+                  className="relative p-2 text-white/80 hover:text-white transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  </svg>
+                  {persistentBadgeCount > 0 && (
+                    <span className="absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-black">
+                      {persistentBadgeCount}
+                    </span>
+                  )}
+                </button>
+                {isPanelOpen && <NotificationPanel notifications={notifications} onClose={() => setIsPanelOpen(false)} />}
+              </div>
+            )}
+            
+            {onLogout && (
+              <button
+                onClick={onLogout}
+                className="px-4 py-1.5 rounded-full border border-white/20 bg-white/10 text-white text-sm hover:bg-white/20 transition-all backdrop-blur-sm"
+              >
+                Sign out
+              </button>
+            )}
+         </div>
+    </div>
   );
 };
 

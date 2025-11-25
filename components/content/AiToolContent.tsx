@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 
 // Declare PDFLib global variable loaded from CDN in index.html
 declare const PDFLib: any;
@@ -8,208 +8,44 @@ interface AiToolContentProps {
   back: () => void;
 }
 
-type ToolType = 'ocr' | 'split' | 'unlock';
+type ToolType = 'split' | 'unlock';
 
 const AiToolContent: React.FC<AiToolContentProps> = ({ back }) => {
-  const [activeTool, setActiveTool] = useState<ToolType>('ocr');
+  const [activeTool, setActiveTool] = useState<ToolType>('split');
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Navigation Tabs */}
-      <div className="flex flex-wrap gap-2 border-b border-gray-200 pb-2">
-        <button
-          onClick={() => setActiveTool('ocr')}
-          className={`px-4 py-2 rounded-t-lg font-semibold text-sm transition-colors ${
-            activeTool === 'ocr'
-              ? 'bg-indigo-600 text-white'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          🖼️ Chuyển hình ảnh thành văn bản
-        </button>
+      <div className="flex gap-4 border-b border-white/10 pb-1">
         <button
           onClick={() => setActiveTool('split')}
-          className={`px-4 py-2 rounded-t-lg font-semibold text-sm transition-colors ${
+          className={`px-6 py-3 rounded-t-2xl font-bold text-sm transition-all transform duration-300 relative overflow-hidden ${
             activeTool === 'split'
-              ? 'bg-indigo-600 text-white'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              ? 'text-white bg-white/10 border-t border-x border-white/20'
+              : 'text-gray-400 hover:text-white hover:bg-white/5'
           }`}
         >
+          {activeTool === 'split' && <div className="absolute top-0 left-0 w-full h-1 bg-green-400 shadow-[0_0_10px_#4ade80]"></div>}
           ✂️ Tách file PDF
         </button>
         <button
           onClick={() => setActiveTool('unlock')}
-          className={`px-4 py-2 rounded-t-lg font-semibold text-sm transition-colors ${
+          className={`px-6 py-3 rounded-t-2xl font-bold text-sm transition-all transform duration-300 relative overflow-hidden ${
             activeTool === 'unlock'
-              ? 'bg-indigo-600 text-white'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              ? 'text-white bg-white/10 border-t border-x border-white/20'
+              : 'text-gray-400 hover:text-white hover:bg-white/5'
           }`}
         >
+          {activeTool === 'unlock' && <div className="absolute top-0 left-0 w-full h-1 bg-green-400 shadow-[0_0_10px_#4ade80]"></div>}
           🔓 Unlock PDF
         </button>
       </div>
 
       {/* Content Area */}
-      <div className="bg-white rounded-lg min-h-[400px]">
-        {activeTool === 'ocr' && <OcrTool />}
+      <div className="bg-white/5 backdrop-blur-md rounded-3xl border border-white/10 p-6 md:p-10 shadow-xl min-h-[500px]">
         {activeTool === 'split' && <SplitPdfTool />}
         {activeTool === 'unlock' && <UnlockPdfTool />}
       </div>
-    </div>
-  );
-};
-
-// --- SUB-COMPONENT: OCR TOOL (Existing Logic) ---
-const OcrTool: React.FC = () => {
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [fileType, setFileType] = useState<string>('');
-  const [extractedText, setExtractedText] = useState<string>('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [customApiKey, setCustomApiKey] = useState(''); // State for custom API key
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const processFile = (file: File) => {
-    if (!file.type.startsWith('image/')) {
-        setError('Vui lòng chỉ chọn file hình ảnh (JPG, PNG, WEBP).');
-        return;
-    }
-    // Limit to 3MB because Base64 encoding increases size by ~33%, potentially exceeding 4MB server limit.
-    if (file.size > 3 * 1024 * 1024) {
-        setError('File quá lớn. Vui lòng chọn ảnh dưới 3MB để đảm bảo AI xử lý tốt.');
-        return;
-    }
-    setError(null);
-    setFileType(file.type);
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setSelectedImage(reader.result as string);
-      setExtractedText('');
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) processFile(file);
-  };
-
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
-  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault(); e.stopPropagation(); setIsDragging(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) processFile(file);
-  };
-
-  const handleExtractText = async () => {
-    if (!selectedImage) return;
-    setIsLoading(true);
-    setError(null);
-    try {
-        const base64Data = selectedImage.split(',')[1];
-        const response = await fetch('/api/generate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                imageBase64: base64Data, 
-                mimeType: fileType,
-                apiKey: customApiKey.trim() // Pass the custom API key if provided
-            }),
-        });
-        if (!response.ok) {
-            const errData = await response.json();
-            throw new Error(errData.details || 'Không thể xử lý hình ảnh.');
-        }
-        const data = await response.json();
-        setExtractedText(data.text || 'Không tìm thấy văn bản nào trong ảnh.');
-    } catch (err) {
-        console.error(err);
-        const e = err as Error;
-        setError(`Lỗi: ${e.message}`);
-    } finally {
-        setIsLoading(false);
-    }
-  };
-
-  const handleCopy = () => {
-    if (extractedText) {
-        navigator.clipboard.writeText(extractedText);
-        alert('Đã sao chép văn bản vào bộ nhớ tạm!');
-    }
-  };
-
-  const handleClear = () => {
-    setSelectedImage(null);
-    setExtractedText('');
-    setError(null);
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  };
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-3">
-            {/* Custom API Key Input */}
-            <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200 text-sm">
-                <label className="block font-semibold text-yellow-800 mb-1">Google Gemini API Key (Tùy chọn)</label>
-                <input 
-                    type="password" 
-                    value={customApiKey}
-                    onChange={(e) => setCustomApiKey(e.target.value)}
-                    placeholder="Nhập API Key của bạn nếu Server chưa cấu hình..."
-                    className="w-full p-2 border rounded focus:ring-2 focus:ring-yellow-500 outline-none text-gray-700 bg-white"
-                />
-                <p className="text-xs text-yellow-700 mt-1">
-                    Nếu bạn gặp lỗi "Chưa cấu hình API Key", hãy nhập key của bạn vào đây. 
-                    <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="underline ml-1 font-bold">Lấy Key tại đây</a>
-                </p>
-            </div>
-
-             <div 
-                className={`border-2 border-dashed rounded-lg transition-all duration-200 bg-gray-50 text-center relative group py-2
-                    ${isDragging ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300 hover:border-indigo-500'}
-                `}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-            >
-                <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" id="ai-image-upload" />
-                <label htmlFor="ai-image-upload" className="cursor-pointer flex items-center justify-center gap-3 w-full px-4">
-                    <span className="text-xl text-gray-500 group-hover:text-indigo-600 transition-colors">{isDragging ? '📂' : '📸'}</span>
-                    <span className="font-semibold text-gray-700 text-sm group-hover:text-indigo-600 transition-colors">{isDragging ? 'Thả file ngay' : (selectedImage ? 'Thay đổi ảnh' : 'Kéo thả / Chọn ảnh')}</span>
-                </label>
-            </div>
-            {error && <div className="p-2 text-sm bg-red-100 text-red-700 rounded-md border border-red-200">{error}</div>}
-            {selectedImage && (
-                <div className="border rounded-lg overflow-hidden bg-black/5">
-                    <img src={selectedImage} alt="Preview" className="w-full h-auto max-h-[300px] object-contain mx-auto" />
-                </div>
-            )}
-            <div className="flex gap-2">
-                <button onClick={handleExtractText} disabled={!selectedImage || isLoading} className="flex-1 py-2 px-4 bg-indigo-600 text-white font-bold rounded-md shadow-sm hover:bg-indigo-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex justify-center items-center gap-2 text-sm">
-                    {isLoading ? <><span className="animate-spin">✨</span> Đang xử lý...</> : '⚡ Chuyển thành văn bản'}
-                </button>
-                {selectedImage && <button onClick={handleClear} disabled={isLoading} className="px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 font-semibold text-sm">Xóa</button>}
-            </div>
-        </div>
-        <div className="space-y-2">
-            <div className="flex justify-between items-center">
-                <label className="font-semibold text-gray-700 text-sm">Kết quả văn bản:</label>
-                {extractedText && <button onClick={handleCopy} className="text-xs text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1">📋 Sao chép</button>}
-            </div>
-            <div className="relative">
-                <textarea value={extractedText} onChange={(e) => setExtractedText(e.target.value)} placeholder="Văn bản trích xuất sẽ hiển thị tại đây..." className="w-full h-[400px] p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none resize-none bg-white font-mono text-sm leading-relaxed" />
-                {isLoading && (
-                    <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-lg">
-                        <div className="text-center">
-                            <div className="animate-bounce text-3xl mb-2">🤖</div>
-                            <p className="text-indigo-600 font-semibold text-sm">AI đang đọc hình ảnh...</p>
-                        </div>
-                    </div>
-                )}
-            </div>
-        </div>
     </div>
   );
 };
@@ -422,106 +258,116 @@ const SplitPdfTool: React.FC = () => {
     };
 
     return (
-        <div className="max-w-3xl mx-auto space-y-6 p-4">
-             <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 text-sm text-blue-800">
-                <p>Công cụ tách trang PDF và lưu thành file mới ngay trên trình duyệt.</p>
+        <div className="max-w-4xl mx-auto space-y-8">
+             <div className="bg-blue-500/10 p-6 rounded-2xl border border-blue-500/20 text-blue-200">
+                <p className="flex items-center gap-3">
+                    <span className="text-2xl">ℹ️</span>
+                    <span>Công cụ tách trang PDF và lưu thành file mới ngay trên trình duyệt (Không cần upload Server).</span>
+                </p>
             </div>
 
             {/* Mode Switcher */}
-            <div className="flex justify-center gap-4">
-                <label className="flex items-center gap-2 cursor-pointer">
+            <div className="flex justify-center gap-6 p-2 bg-white/5 rounded-2xl border border-white/10 w-max mx-auto">
+                <label className={`flex items-center gap-3 cursor-pointer px-6 py-3 rounded-xl transition-all ${mode === 'range' ? 'bg-[#184d47] text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}>
                     <input 
                         type="radio" 
                         name="splitMode" 
                         checked={mode === 'range'} 
                         onChange={() => handleModeSwitch('range')}
-                        className="w-4 h-4 text-indigo-600"
+                        className="hidden"
                     />
-                    <span className="font-semibold">Tách theo khoảng (Range)</span>
+                    <span className="font-bold">Tách theo khoảng</span>
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer">
+                <label className={`flex items-center gap-3 cursor-pointer px-6 py-3 rounded-xl transition-all ${mode === 'individual' ? 'bg-[#184d47] text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}>
                     <input 
                         type="radio" 
                         name="splitMode" 
                         checked={mode === 'individual'} 
                         onChange={() => handleModeSwitch('individual')}
-                        className="w-4 h-4 text-indigo-600"
+                        className="hidden"
                     />
-                    <span className="font-semibold">Tách từng trang (Individual)</span>
+                    <span className="font-bold">Tách từng trang</span>
                 </label>
             </div>
 
-            <div className="space-y-4">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+            <div className="space-y-6">
+                <div className="bg-white/5 p-6 rounded-2xl border border-white/10">
+                    <label className="block text-base font-bold text-green-300 mb-3">
                         1. Chọn file PDF gốc {mode === 'individual' ? '(Tự động phân tích trang)' : ''}
                     </label>
                     <input 
                         type="file" 
                         accept="application/pdf"
                         onChange={handleFileChange}
-                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                        className="block w-full text-sm text-gray-400
+                          file:mr-4 file:py-3 file:px-6
+                          file:rounded-full file:border-0
+                          file:text-sm file:font-bold
+                          file:bg-green-600 file:text-white
+                          hover:file:bg-green-500 cursor-pointer"
                     />
                 </div>
 
                 {mode === 'range' && (
-                    <>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">2. Trang cần tách (Ví dụ: 1, 3-5, 8)</label>
+                    <div className="grid md:grid-cols-2 gap-6">
+                        <div className="bg-white/5 p-6 rounded-2xl border border-white/10">
+                            <label className="block text-base font-bold text-green-300 mb-3">2. Trang cần tách (Ví dụ: 1, 3-5, 8)</label>
                             <input 
                                 type="text" 
                                 value={pageRange}
                                 onChange={(e) => setPageRange(e.target.value)}
                                 placeholder="Nhập số trang..."
-                                className="w-full p-2 border rounded-md focus:ring-2 focus:ring-indigo-500 outline-none"
+                                className="w-full p-3 bg-white/10 border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-green-400 outline-none"
                             />
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">3. Tên file mới (Không cần đuôi .pdf)</label>
+                        <div className="bg-white/5 p-6 rounded-2xl border border-white/10">
+                            <label className="block text-base font-bold text-green-300 mb-3">3. Tên file mới (Không cần đuôi .pdf)</label>
                             <input 
                                 type="text" 
                                 value={outputName}
                                 onChange={(e) => setOutputName(e.target.value)}
                                 placeholder="Nhập tên file..."
-                                className="w-full p-2 border rounded-md focus:ring-2 focus:ring-indigo-500 outline-none"
+                                className="w-full p-3 bg-white/10 border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-green-400 outline-none"
                             />
                         </div>
 
-                        <button
-                            onClick={handleSplitRange}
-                            disabled={isProcessing || !file}
-                            className="w-full py-2 px-4 bg-indigo-600 text-white font-bold rounded-md hover:bg-indigo-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-                        >
-                            {isProcessing ? 'Đang xử lý...' : 'Tách và Tải xuống'}
-                        </button>
-                    </>
+                        <div className="md:col-span-2">
+                             <button
+                                onClick={handleSplitRange}
+                                disabled={isProcessing || !file}
+                                className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-indigo-500/40 transition-all transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {isProcessing ? '⏳ Đang xử lý...' : '🚀 Tách và Tải xuống'}
+                            </button>
+                        </div>
+                    </div>
                 )}
 
                 {mode === 'individual' && pageList.length > 0 && (
-                    <div className="border rounded-lg overflow-hidden bg-white shadow-sm">
-                        <div className="bg-gray-100 p-2 font-semibold text-gray-700 grid grid-cols-[60px_1fr_80px_100px] gap-2 text-center text-sm">
+                    <div className="border border-white/10 rounded-2xl overflow-hidden bg-white/5 shadow-inner">
+                        <div className="bg-white/10 p-4 font-bold text-green-300 grid grid-cols-[60px_1fr_80px_100px] gap-4 text-center text-sm uppercase tracking-wider">
                             <div>Trang</div>
                             <div>Tên File Mới</div>
                             <div>Xem</div>
                             <div>Tải</div>
                         </div>
-                        <div className="max-h-[400px] overflow-y-auto">
+                        <div className="max-h-[500px] overflow-y-auto">
                             {pageList.map((page, idx) => (
-                                <div key={page.index} className="grid grid-cols-[60px_1fr_80px_100px] gap-2 p-2 border-b last:border-0 items-center hover:bg-gray-50 transition-colors">
-                                    <div className="text-center font-bold text-gray-500">{idx + 1}</div>
+                                <div key={page.index} className="grid grid-cols-[60px_1fr_80px_100px] gap-4 p-3 border-b border-white/5 last:border-0 items-center hover:bg-white/10 transition-colors">
+                                    <div className="text-center font-bold text-gray-300">{idx + 1}</div>
                                     <input 
                                         type="text" 
                                         value={page.customName}
                                         onChange={(e) => handleNameChange(idx, e.target.value)}
-                                        className="p-1 border rounded px-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none w-full"
+                                        className="p-2 border border-white/10 bg-white/5 rounded-lg text-sm text-white focus:ring-2 focus:ring-green-400 outline-none w-full"
                                     />
                                     <div className="text-center">
                                          <button 
                                             onClick={() => handlePreviewPage(page)}
                                             disabled={previewLoading}
-                                            className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs hover:bg-blue-200 transition-colors"
-                                            title="Xem trước trang này"
+                                            className="px-3 py-1.5 bg-blue-500/20 text-blue-300 border border-blue-500/40 rounded-lg text-xs hover:bg-blue-500 hover:text-white transition-all font-semibold"
+                                            title="Xem trước"
                                         >
                                             👁️ Xem
                                         </button>
@@ -529,9 +375,9 @@ const SplitPdfTool: React.FC = () => {
                                     <div className="text-center">
                                         <button 
                                             onClick={() => handleDownloadSinglePage(page)}
-                                            className="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700 transition-colors"
+                                            className="px-3 py-1.5 bg-green-500/20 text-green-300 border border-green-500/40 rounded-lg text-xs hover:bg-green-500 hover:text-white transition-all font-semibold"
                                         >
-                                            ⬇ Tải về
+                                            ⬇ Tải
                                         </button>
                                     </div>
                                 </div>
@@ -541,7 +387,7 @@ const SplitPdfTool: React.FC = () => {
                 )}
 
                 {status && (
-                    <div className={`p-3 rounded-md text-sm ${status.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                    <div className={`p-4 rounded-xl text-sm font-semibold border ${status.type === 'success' ? 'bg-green-500/20 text-green-300 border-green-500/40' : 'bg-red-500/20 text-red-300 border-red-500/40'}`}>
                         {status.message}
                     </div>
                 )}
@@ -549,24 +395,24 @@ const SplitPdfTool: React.FC = () => {
             
             {/* Preview Modal */}
             {previewUrl && (
-                <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={closePreview}>
-                    <div className="bg-white rounded-lg p-4 w-full max-w-2xl max-h-[90vh] flex flex-col relative" onClick={e => e.stopPropagation()}>
-                        <div className="flex justify-between items-center mb-2">
-                             <h3 className="font-bold text-lg">Xem trước</h3>
-                             <button onClick={closePreview} className="text-gray-500 hover:text-gray-800 text-xl">✕</button>
+                <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-6 backdrop-blur-sm" onClick={closePreview}>
+                    <div className="bg-gray-900 border border-white/20 rounded-2xl p-4 w-full max-w-4xl max-h-[90vh] flex flex-col relative shadow-2xl" onClick={e => e.stopPropagation()}>
+                        <div className="flex justify-between items-center mb-4 border-b border-white/10 pb-2">
+                             <h3 className="font-bold text-xl text-white">Xem trước</h3>
+                             <button onClick={closePreview} className="text-gray-400 hover:text-white text-2xl">✕</button>
                         </div>
-                        <div className="flex-1 bg-gray-100 border rounded-lg overflow-hidden">
-                             <iframe src={previewUrl} className="w-full h-[70vh]" title="PDF Page Preview"></iframe>
+                        <div className="flex-1 bg-black/50 rounded-xl overflow-hidden relative">
+                             <iframe src={previewUrl} className="w-full h-[75vh]" title="PDF Page Preview"></iframe>
                         </div>
                     </div>
                 </div>
             )}
             
             {previewLoading && (
-                <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
-                    <div className="bg-white p-4 rounded-lg shadow-lg flex items-center gap-2">
-                        <span className="animate-spin text-xl">⏳</span>
-                        <span>Đang tạo bản xem trước...</span>
+                <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center backdrop-blur-sm">
+                    <div className="bg-gray-800 p-6 rounded-2xl shadow-2xl flex items-center gap-4 border border-white/10">
+                        <span className="animate-spin text-3xl">⏳</span>
+                        <span className="text-white font-bold">Đang tạo bản xem trước...</span>
                     </div>
                 </div>
             )}
@@ -602,10 +448,6 @@ const UnlockPdfTool: React.FC = () => {
 
         try {
             const arrayBuffer = await file.arrayBuffer();
-            
-            // Try loading. If encrypted, pdf-lib throws error if password not provided or wrong.
-            // If encrypted with owner password but no user password, it might just open.
-            // If user password needed, we pass it.
             
             let pdfDoc;
             try {
@@ -644,36 +486,44 @@ const UnlockPdfTool: React.FC = () => {
     };
 
     return (
-        <div className="max-w-2xl mx-auto space-y-6 p-4">
-             <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 text-sm text-yellow-800">
-                <p>Công cụ gỡ bỏ mật khẩu và quyền hạn chế (in ấn, copy) của file PDF.</p>
+        <div className="max-w-3xl mx-auto space-y-8">
+             <div className="bg-yellow-500/10 p-6 rounded-2xl border border-yellow-500/20 text-yellow-200">
+                <p className="flex items-center gap-3">
+                    <span className="text-2xl">🔐</span>
+                    <span>Công cụ gỡ bỏ mật khẩu và quyền hạn chế (in ấn, copy) của file PDF.</span>
+                </p>
             </div>
 
-            <div className="space-y-4">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">1. Chọn file PDF bị khóa</label>
+            <div className="space-y-6">
+                <div className="bg-white/5 p-6 rounded-2xl border border-white/10">
+                    <label className="block text-base font-bold text-green-300 mb-3">1. Chọn file PDF bị khóa</label>
                     <input 
                         type="file" 
                         accept="application/pdf"
                         onChange={handleFileChange}
-                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                        className="block w-full text-sm text-gray-400
+                          file:mr-4 file:py-3 file:px-6
+                          file:rounded-full file:border-0
+                          file:text-sm file:font-bold
+                          file:bg-indigo-600 file:text-white
+                          hover:file:bg-indigo-500 cursor-pointer"
                     />
                 </div>
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">2. Mật khẩu (Nếu file yêu cầu mật khẩu để mở)</label>
+                <div className="bg-white/5 p-6 rounded-2xl border border-white/10">
+                    <label className="block text-base font-bold text-green-300 mb-3">2. Mật khẩu (Nếu file yêu cầu mật khẩu để mở)</label>
                     <input 
                         type="password" 
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="Nhập mật khẩu (để trống nếu không có)"
-                        className="w-full p-2 border rounded-md focus:ring-2 focus:ring-indigo-500 outline-none"
+                        className="w-full p-3 bg-white/10 border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-green-400 outline-none placeholder-gray-500"
                     />
-                    <p className="text-xs text-gray-500 mt-1">Nếu bạn có thể mở file để xem nhưng không in/copy được, hãy để trống ô mật khẩu.</p>
+                    <p className="text-sm text-gray-400 mt-2 italic">💡 Nếu bạn có thể mở file để xem nhưng không in/copy được, hãy để trống ô mật khẩu.</p>
                 </div>
 
                 {status && (
-                    <div className={`p-3 rounded-md text-sm ${status.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                    <div className={`p-4 rounded-xl text-sm font-semibold border ${status.type === 'success' ? 'bg-green-500/20 text-green-300 border-green-500/40' : 'bg-red-500/20 text-red-300 border-red-500/40'}`}>
                         {status.message}
                     </div>
                 )}
@@ -681,9 +531,9 @@ const UnlockPdfTool: React.FC = () => {
                 <button
                     onClick={handleUnlock}
                     disabled={isProcessing || !file}
-                    className="w-full py-2 px-4 bg-indigo-600 text-white font-bold rounded-md hover:bg-indigo-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    className="w-full py-4 bg-gradient-to-r from-yellow-600 to-orange-600 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-orange-500/40 transition-all transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    {isProcessing ? 'Đang xử lý...' : 'Mở khóa và Tải xuống'}
+                    {isProcessing ? '⏳ Đang xử lý...' : '🔓 Mở khóa và Tải xuống'}
                 </button>
             </div>
         </div>

@@ -146,7 +146,8 @@ const SubmissionContent: React.FC<SubmissionContentProps> = ({ back }) => {
     }
 
     setIsUploading(true);
-    setUploadStatus({ type: 'info', message: 'B1: Đang tải file lên hệ thống...' });
+    // Clear previous status to show the loading spinner purely
+    setUploadStatus(null);
 
     const searchParams = new URLSearchParams({
         jobId: jobId,
@@ -167,8 +168,6 @@ const SubmissionContent: React.FC<SubmissionContentProps> = ({ back }) => {
       }
       const result = await response.json();
       
-      setUploadStatus({ type: 'info', message: 'B2: Tải file xong. Đang lưu dữ liệu...' });
-
       const newSubmission: SubmissionData = {
         id: Date.now().toString(),
         hbl: jobId,
@@ -179,7 +178,6 @@ const SubmissionContent: React.FC<SubmissionContentProps> = ({ back }) => {
       // 2. Update DB
       const currentData = await fetchRemoteData();
       // CRITICAL: Do not proceed if data fetch fails
-      // Note: empty array is valid, null is error
       if (currentData === null) {
            throw new Error("Không thể lấy dữ liệu hiện tại. Vui lòng thử lại.");
       }
@@ -255,12 +253,11 @@ const SubmissionContent: React.FC<SubmissionContentProps> = ({ back }) => {
 
   return (
     <div>
-        <div className="flex justify-between items-center mb-4">
-            <p>Nộp hồ sơ hoàn cược. Vui lòng điền đúng thông tin số HBL có dạng KML.... và tải lên file của bạn.</p>
+        <div className="flex justify-end items-center mb-4">
             <button 
                 onClick={refreshData} 
                 disabled={isLoadingData}
-                className="flex items-center gap-2 px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded text-sm font-medium transition-colors"
+                className="flex items-center gap-2 px-3 py-1 bg-white/10 hover:bg-white/20 text-white rounded text-sm font-medium transition-colors border border-white/20"
             >
                 <span className={`${isLoadingData ? 'animate-spin' : ''}`}>🔄</span>
                 {isLoadingData ? 'Đang tải...' : 'Làm mới'}
@@ -269,7 +266,7 @@ const SubmissionContent: React.FC<SubmissionContentProps> = ({ back }) => {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="jobId" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="jobId" className="block text-sm font-medium text-white mb-1">
             Job ID
           </label>
           <input
@@ -278,12 +275,12 @@ const SubmissionContent: React.FC<SubmissionContentProps> = ({ back }) => {
             value={jobId}
             onChange={(e) => setJobId(e.target.value)}
             placeholder="Nhập số HBL..."
-            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#5c9ead] focus:border-transparent outline-none"
+            className="w-full p-2 bg-white/10 border border-white/20 rounded-md focus:ring-2 focus:ring-[#5c9ead] focus:border-transparent outline-none text-white placeholder-gray-400"
             required
           />
         </div>
         <div>
-          <label htmlFor="fileUpload" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="fileUpload" className="block text-sm font-medium text-white mb-1">
             Chọn File (Tối đa 4MB)
           </label>
           <input
@@ -291,7 +288,7 @@ const SubmissionContent: React.FC<SubmissionContentProps> = ({ back }) => {
             id="fileUpload"
             ref={fileInputRef}
             onChange={handleFileChange}
-            className="block w-full text-sm text-gray-500
+            className="block w-max text-sm text-gray-300
               file:mr-4 file:py-2 file:px-4
               file:rounded-full file:border-0
               file:text-sm file:font-semibold
@@ -301,54 +298,62 @@ const SubmissionContent: React.FC<SubmissionContentProps> = ({ back }) => {
           />
         </div>
         
-        {uploadStatus && (
-            <div className={`p-3 rounded-md border ${statusColor[uploadStatus.type]}`}>
-                <p>{uploadStatus.message}</p>
-                {uploadStatus.url && (
-                    <p className="mt-2">
-                        <span className="font-semibold">URL file:</span>{' '}
-                        <a href={uploadStatus.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline break-all">
-                            {uploadStatus.url}
-                        </a>
-                    </p>
-                )}
+        {/* Render Loading Spinner OR Status Message */}
+        {isUploading ? (
+            <div className="flex items-center justify-center p-4 bg-white/10 rounded-xl border border-white/20 animate-pulse">
+                <span className="text-2xl mr-3 animate-spin">⏳</span>
+                <span className="text-white font-bold tracking-wide">Đang xử lý... vui lòng chờ</span>
             </div>
+        ) : (
+            uploadStatus && (
+                <div className={`p-3 rounded-md border ${statusColor[uploadStatus.type]}`}>
+                    <p className="font-semibold">{uploadStatus.message}</p>
+                    {uploadStatus.url && (
+                        <p className="mt-2 text-sm">
+                            <span className="font-semibold">URL file:</span>{' '}
+                            <a href={uploadStatus.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline break-all">
+                                {uploadStatus.url}
+                            </a>
+                        </p>
+                    )}
+                </div>
+            )
         )}
 
         <div className="flex items-center gap-4 pt-2">
             <button
               type="submit"
               disabled={isUploading}
-              className="px-6 py-2 bg-[#184d47] text-white border-none rounded-md cursor-pointer hover:bg-opacity-80 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="px-6 py-2 bg-[#184d47] text-white border-none rounded-md cursor-pointer hover:bg-opacity-80 transition disabled:bg-gray-500 disabled:cursor-not-allowed shadow-lg"
             >
-              {isUploading ? 'Đang xử lý...' : 'Nộp hồ sơ'}
+              {isUploading ? 'Đang gửi...' : 'Nộp hồ sơ'}
             </button>
         </div>
       </form>
 
       {isAdmin && (
-        <div className="mt-8 pt-6 border-t">
-          <h3 className="text-xl font-bold text-gray-800 mb-4">Danh sách hồ sơ chờ xử lý ({submissions.length})</h3>
+        <div className="mt-8 pt-6 border-t border-white/10">
+          <h3 className="text-xl font-bold text-white mb-4">Danh sách hồ sơ chờ xử lý ({submissions.length})</h3>
           {submissions.length > 0 ? (
-            <div className="overflow-x-auto border rounded-lg bg-white">
+            <div className="overflow-x-auto border border-white/20 rounded-lg bg-white/10 backdrop-blur-sm">
               <table className="w-full text-sm text-left">
-                <thead className="bg-gray-100">
+                <thead className="bg-white/20 text-white">
                   <tr>
-                    <th className="p-3 font-semibold">HBL</th>
-                    <th className="p-3 font-semibold">Hồ sơ</th>
-                    <th className="p-3 font-semibold text-right">Tình trạng</th>
+                    <th className="p-3 font-semibold border-b border-white/10">HBL</th>
+                    <th className="p-3 font-semibold border-b border-white/10">Hồ sơ</th>
+                    <th className="p-3 font-semibold text-right border-b border-white/10">Tình trạng</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="text-gray-100">
                   {submissions.map((sub) => (
-                    <tr key={sub.id} className="border-b last:border-0 hover:bg-gray-50">
-                      <td className="p-3 whitespace-nowrap font-medium text-gray-800">{sub.hbl}</td>
+                    <tr key={sub.id} className="border-b border-white/10 last:border-0 hover:bg-white/5 transition-colors">
+                      <td className="p-3 whitespace-nowrap font-medium text-white">{sub.hbl}</td>
                       <td className="p-3 whitespace-nowrap">
                         <a 
                           href={sub.fileUrl} 
                           target="_blank" 
                           rel="noopener noreferrer" 
-                          className="text-blue-600 hover:underline"
+                          className="text-blue-300 hover:text-blue-100 hover:underline"
                           title={sub.fileName}
                         >
                           Xem file
@@ -358,7 +363,7 @@ const SubmissionContent: React.FC<SubmissionContentProps> = ({ back }) => {
                         <button 
                           onClick={() => handleCompleteSubmission(sub.id)}
                           disabled={isUploading}
-                          className="px-3 py-1 bg-green-500 text-white rounded-md text-xs hover:bg-green-600 transition-colors disabled:bg-gray-400"
+                          className="px-3 py-1 bg-green-600 text-white rounded-md text-xs hover:bg-green-500 transition-colors disabled:bg-gray-500"
                         >
                           Hoàn thành
                         </button>
@@ -369,7 +374,7 @@ const SubmissionContent: React.FC<SubmissionContentProps> = ({ back }) => {
               </table>
             </div>
           ) : (
-            <p className="text-center text-gray-500 py-4 bg-gray-50 rounded-md">Không có hồ sơ nào đang chờ xử lý.</p>
+            <p className="text-center text-gray-300 py-4 bg-white/5 rounded-md border border-white/10">Không có hồ sơ nào đang chờ xử lý.</p>
           )}
         </div>
       )}

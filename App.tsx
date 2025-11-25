@@ -65,15 +65,12 @@ const App: React.FC = () => {
       }
     } catch (error) {
         console.error("Failed to initialize user data:", error);
-        // Clear potentially corrupted data
         localStorage.removeItem('users');
     }
     
-    // Check for existing logged-in user session
     try {
       const loggedInUser = localStorage.getItem('user');
       if (loggedInUser) {
-        // Validate that the stored user is valid JSON
         JSON.parse(loggedInUser);
         setIsAuthenticated(true);
       }
@@ -91,7 +88,6 @@ const App: React.FC = () => {
   const handleLogout = () => {
     localStorage.removeItem('user');
     setIsAuthenticated(false);
-    // Reset view to default when logging out
     setActiveView('default');
   };
 
@@ -100,13 +96,38 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 font-sans text-gray-800">
-      <Header onLogout={handleLogout} />
-      <Navbar setActiveView={setActiveView} />
-      <main className="px-4 py-8 md:px-8">
+    <div className="relative min-h-screen font-sans text-gray-100 overflow-x-hidden">
+      {/* Background Image */}
+      <div 
+        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
+        style={{ 
+            backgroundImage: "url('https://images.unsplash.com/photo-1472214103451-9374bd1c798e?q=80&w=2070&auto=format&fit=crop')",
+            filter: "brightness(0.7)"
+        }}
+      ></div>
+
+      {/* Big Typography Background */}
+      <div className="fixed inset-0 z-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
+        <h1 className="text-[15vw] font-black text-white/5 tracking-widest uppercase whitespace-nowrap" style={{ mixBlendMode: 'overlay' }}>
+          KIMBERRY
+        </h1>
+      </div>
+
+      {/* Top Navigation Bar (Header + Navbar combined visually) */}
+      <div className="relative z-50 flex flex-col md:flex-row items-center justify-between px-8 py-6 max-w-[1600px] mx-auto">
+        <Header onLogout={handleLogout} />
+        <Navbar setActiveView={setActiveView} />
+      </div>
+
+      {/* Main Content Area */}
+      <main className="relative z-10 px-4 py-4 md:px-8 max-w-[1600px] mx-auto pb-20">
         <MainContent activeView={activeView} setActiveView={setActiveView} />
       </main>
-      <Contacts />
+
+      {/* Footer / Contacts */}
+      <div className="relative z-10">
+        <Contacts />
+      </div>
     </div>
   );
 };

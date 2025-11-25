@@ -432,14 +432,14 @@ const DataEntryContent: React.FC<DataEntryContentProps> = ({ back }) => {
     };
     
     const statusColor = {
-        success: 'text-green-600 bg-green-100 border-green-300',
-        error: 'text-red-600 bg-red-100 border-red-300',
-        info: 'text-blue-600 bg-blue-100 border-blue-300',
-        warning: 'text-amber-600 bg-amber-100 border-amber-300',
+        success: 'text-green-300 bg-green-500/20 border-green-500/50',
+        error: 'text-red-300 bg-red-500/20 border-red-500/50',
+        info: 'text-blue-300 bg-blue-500/20 border-blue-500/50',
+        warning: 'text-yellow-300 bg-yellow-500/20 border-yellow-500/50',
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-8">
             {isCalendarOpen && (
                 <CalendarPopup 
                     onSelectDate={handleDateSelect}
@@ -447,29 +447,41 @@ const DataEntryContent: React.FC<DataEntryContentProps> = ({ back }) => {
                 />
             )}
 
-            <div className="p-4 border rounded-lg bg-gray-50">
-                <h3 className="text-lg font-semibold mb-3 text-gray-700">Xử lý dữ liệu nhanh</h3>
-                <textarea
-                    value={processingText}
-                    onChange={(e) => setProcessingText(e.target.value)}
-                    placeholder="Dán dữ liệu vào đây, ví dụ: '54,000,000	... bill KMLSHA11060060 ... 18/11/2025'"
-                    className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#5c9ead] outline-none min-h-[100px]"
-                    aria-label="Data processing input"
-                />
-                <button 
-                    onClick={handleProcessData} 
-                    className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors inline-flex items-center gap-2"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M5 4a1 1 0 00-2 0v7.268a2 2 0 000 3.464V16a1 1 0 102 0v-1.268a2 2 0 000-3.464V4zM11 4a1 1 0 10-2 0v1.268a2 2 0 000 3.464V16a1 1 0 102 0V8.732a2 2 0 000-3.464V4zM16 3a1 1 0 011 1v7.268a2 2 0 010 3.464V16a1 1 0 11-2 0v-1.268a2 2 0 010-3.464V4a1 1 0 011-1z" />
-                    </svg>
-                    Xử lý
-                </button>
+            {/* BLOCK 1: FAST PROCESSING */}
+            <div className="bg-white/5 backdrop-blur-md p-6 rounded-3xl border border-white/10 shadow-lg transition-all hover:bg-white/10">
+                <div className="flex items-center gap-3 mb-4">
+                    <span className="text-2xl">⚡</span>
+                    <h3 className="text-xl font-bold text-green-300">Xử lý dữ liệu nhanh</h3>
+                </div>
+                <div className="relative">
+                    <textarea
+                        value={processingText}
+                        onChange={(e) => setProcessingText(e.target.value)}
+                        placeholder="Dán dữ liệu vào đây (VD: 54,000,000 ... KMLSHA...)"
+                        className="w-full p-4 border border-white/20 rounded-xl bg-white/10 text-white placeholder-gray-400 focus:ring-2 focus:ring-green-400 focus:border-transparent outline-none min-h-[100px] transition-colors"
+                    />
+                    <div className="absolute bottom-3 right-3">
+                        <button 
+                            onClick={handleProcessData} 
+                            className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-lg hover:shadow-lg transition-all transform hover:-translate-y-0.5 flex items-center gap-2 text-sm font-semibold"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                            </svg>
+                            Xử lý ngay
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <div className="p-4 border rounded-lg bg-gray-50">
-                <h3 className="text-lg font-semibold mb-3 text-gray-700">Mục Nhập Liệu</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* BLOCK 2: DATA ENTRY FORM */}
+            <div className="bg-white/5 backdrop-blur-md p-6 rounded-3xl border border-white/10 shadow-lg transition-all hover:bg-white/10">
+                <div className="flex items-center gap-3 mb-6">
+                    <span className="text-2xl">📝</span>
+                    <h3 className="text-xl font-bold text-yellow-300">Mục Nhập Liệu</h3>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     {formFields.map(field => {
                         const currentValue = formData[field.name];
                         let displayValue = '';
@@ -481,20 +493,26 @@ const DataEntryContent: React.FC<DataEntryContentProps> = ({ back }) => {
 
                         return (
                             <div key={field.name}>
-                                <label htmlFor={field.name} className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
-                                <div className="flex items-center gap-2">
+                                <label className="block text-sm font-medium text-gray-300 mb-1.5 ml-1">{field.label}</label>
+                                <div className="flex items-center gap-2 group">
                                     {field.type === 'select' ? (
-                                        <select
-                                            id={field.name}
-                                            name={field.name}
-                                            value={String(formData[field.name] || '')}
-                                            onChange={handleChange}
-                                            className="w-full p-2 border rounded-md bg-white focus:ring-2 focus:ring-[#5c9ead] outline-none"
-                                        >
-                                            {field.options?.map(option => (
-                                                <option key={option} value={option}>{option || '--- Chọn tháng ---'}</option>
-                                            ))}
-                                        </select>
+                                        <div className="relative w-full">
+                                            <select
+                                                id={field.name}
+                                                name={field.name}
+                                                value={String(formData[field.name] || '')}
+                                                onChange={handleChange}
+                                                className="w-full p-3 pl-4 border border-white/20 rounded-xl bg-white/10 text-white focus:ring-2 focus:ring-green-400 outline-none appearance-none cursor-pointer"
+                                                style={{ colorScheme: 'dark' }}
+                                            >
+                                                {field.options?.map(option => (
+                                                    <option key={option} value={option} className="bg-gray-800">{option || '--- Chọn tháng ---'}</option>
+                                                ))}
+                                            </select>
+                                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-white">
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                                            </div>
+                                        </div>
                                     ) : (
                                         <input
                                             type={field.type}
@@ -504,28 +522,31 @@ const DataEntryContent: React.FC<DataEntryContentProps> = ({ back }) => {
                                             onChange={handleChange}
                                             inputMode={field.inputMode}
                                             required={field.required}
-                                            placeholder={field.label.replace(' (*)', '') + '...'}
-                                            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#5c9ead] outline-none"
+                                            placeholder="..."
+                                            className="w-full p-3 border border-white/20 rounded-xl bg-white/10 text-white placeholder-gray-500 focus:ring-2 focus:ring-green-400 outline-none transition-colors"
                                         />
                                     )}
+                                    
+                                    {/* Action Buttons for specific fields */}
                                     {field.name === 'Ma' && (
                                         <button
                                             type="button"
                                             onClick={handleLoadFromSheet}
                                             disabled={isSheetLoading}
-                                            className="px-3 py-2 bg-indigo-500 text-white rounded-md text-sm hover:bg-indigo-600 transition-colors flex-shrink-0 whitespace-nowrap disabled:bg-gray-400"
-                                            title="Tải dữ liệu từ Google Sheet"
+                                            className="p-3 bg-indigo-500/20 border border-indigo-500/50 text-indigo-300 rounded-xl hover:bg-indigo-500 hover:text-white transition-all shadow-lg flex-shrink-0"
+                                            title="Tải từ Google Sheet"
                                         >
-                                            {isSheetLoading ? '⏳' : 'Tải'}
+                                            {isSheetLoading ? '⏳' : <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" /></svg>}
                                         </button>
                                     )}
                                     {field.name === 'TrangThai' && (
                                         <button
                                             type="button"
                                             onClick={() => setFormData(prev => ({ ...prev, TrangThai: 'Đã nhận thanh toán lcc' }))}
-                                            className="px-3 py-2 bg-green-500 text-white rounded-md text-sm hover:bg-green-600 transition-colors flex-shrink-0 whitespace-nowrap"
+                                            className="p-3 bg-green-500/20 border border-green-500/50 text-green-300 rounded-xl hover:bg-green-500 hover:text-white transition-all shadow-lg flex-shrink-0"
+                                            title="Điền nhanh: Đã nhận thanh toán lcc"
                                         >
-                                            Hoàn thành
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
                                         </button>
                                     )}
                                     {(field.name === 'NoiDung1' || field.name === 'NoiDung2') && (
@@ -535,10 +556,10 @@ const DataEntryContent: React.FC<DataEntryContentProps> = ({ back }) => {
                                                 setCalendarTargetField(field.name as 'NoiDung1' | 'NoiDung2');
                                                 setIsCalendarOpen(true);
                                             }}
-                                            className="px-3 py-2 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 transition-colors flex-shrink-0"
-                                            aria-label={`Chọn ngày cho ${field.label}`}
+                                            className="p-3 bg-blue-500/20 border border-blue-500/50 text-blue-300 rounded-xl hover:bg-blue-500 hover:text-white transition-all shadow-lg flex-shrink-0"
+                                            title="Chọn ngày"
                                         >
-                                            📅
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" /></svg>
                                         </button>
                                     )}
                                 </div>
@@ -546,62 +567,85 @@ const DataEntryContent: React.FC<DataEntryContentProps> = ({ back }) => {
                         )
                     })}
                 </div>
-                <button 
-                    onClick={handleAddJob} 
-                    disabled={isSaving}
-                    className="mt-4 px-4 py-2 bg-[#5c9ead] text-white rounded-md hover:bg-[#4a8c99] disabled:bg-gray-400"
-                >
-                    {isSaving ? 'Đang lưu...' : '➕ Thêm vào bảng tạm'}
-                </button>
+                
+                <div className="mt-8 flex justify-end">
+                    <button 
+                        onClick={handleAddJob} 
+                        disabled={isSaving}
+                        className="px-6 py-3 bg-gradient-to-r from-[#184d47] to-green-700 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-green-500/30 transform hover:-translate-y-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                        {isSaving ? (
+                            <span className="animate-spin">⏳</span>
+                        ) : (
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" /></svg>
+                        )}
+                        Thêm vào bảng tạm
+                    </button>
+                </div>
             </div>
 
-            {status && <div className={`p-3 rounded-md border ${statusColor[status.type as keyof typeof statusColor] || statusColor.info}`}>{status.message}</div>}
+            {status && (
+                <div className={`p-4 rounded-xl border backdrop-blur-md shadow-lg flex items-center gap-3 animate-fade-in ${statusColor[status.type as keyof typeof statusColor] || statusColor.info}`}>
+                    <span className="text-xl">
+                        {status.type === 'success' && '✅'}
+                        {status.type === 'error' && '❌'}
+                        {status.type === 'info' && 'ℹ️'}
+                        {status.type === 'warning' && '⚠️'}
+                    </span>
+                    <span className="font-medium">{status.message}</span>
+                </div>
+            )}
 
-            <div className="p-4 border rounded-lg bg-white shadow-sm">
-                <div className="flex justify-between items-center mb-3">
-                    <h3 className="text-lg font-semibold text-gray-700">Bảng tạm Cloud ({jobEntries.length} mục)</h3>
+            {/* BLOCK 3: TEMP TABLE */}
+            <div className="bg-white/5 backdrop-blur-md p-6 rounded-3xl border border-white/10 shadow-xl overflow-hidden transition-all hover:bg-white/10">
+                <div className="flex justify-between items-center mb-6">
+                    <div className="flex items-center gap-3">
+                         <span className="text-2xl">☁️</span>
+                         <h3 className="text-xl font-bold text-blue-300">Bảng tạm Cloud ({jobEntries.length} mục)</h3>
+                    </div>
                     <button 
                         onClick={handleRefresh} 
                         disabled={isSaving}
-                        className="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1"
+                        className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-full text-sm font-medium text-white transition-colors border border-white/20 flex items-center gap-2"
                     >
-                        <span className={isSaving ? 'animate-spin' : ''}>🔄</span> Làm mới dữ liệu
+                        <span className={isSaving ? 'animate-spin' : ''}>🔄</span>
+                        Làm mới
                     </button>
                 </div>
                 
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto rounded-xl border border-white/10">
                     <table className="w-full text-sm text-left">
-                        <thead className="bg-gray-100">
+                        <thead className="bg-white/10 text-green-300 uppercase text-xs tracking-wider">
                             <tr>
-                                {formFields.map(f => <th key={f.name} className="p-2 font-semibold">{f.label.replace(' (*)', '')}</th>)}
-                                <th className="p-2 font-semibold text-right">Hành động</th>
+                                {formFields.map(f => <th key={f.name} className="p-4 font-bold border-b border-white/10">{f.label.replace(' (*)', '')}</th>)}
+                                <th className="p-4 font-bold text-right border-b border-white/10">Hành động</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="text-gray-200">
                             {jobEntries.map((job, index) => (
-                                <tr key={job.Ma || index} className="border-b hover:bg-gray-50">
+                                <tr key={job.Ma || index} className="border-b border-white/5 hover:bg-white/10 transition-colors last:border-0">
                                     {formFields.map(f => (
-                                        <td key={f.name} className="p-2 whitespace-nowrap">
+                                        <td key={f.name} className="p-4 whitespace-nowrap font-medium">
                                             {typeof job[f.name] === 'number' ? (job[f.name] as number).toLocaleString('en-US') : (job[f.name] || '-')}
                                         </td>
                                     ))}
-                                    <td className="p-2 text-right">
-                                        <div className="flex justify-end items-center gap-3">
+                                    <td className="p-4 text-right">
+                                        <div className="flex justify-end items-center gap-2">
                                             <button 
                                                 onClick={() => handleLoadJobForEditing(job.Ma)} 
-                                                className="text-blue-500 hover:text-blue-700 disabled:text-gray-300" 
+                                                className="p-2 text-blue-400 hover:text-white hover:bg-blue-500 rounded-lg transition-colors"
                                                 title="Sửa lại mục này"
                                                 disabled={isSaving}
                                             >
-                                                ✏️
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" /></svg>
                                             </button>
                                             <button 
                                                 onClick={() => handleDeleteJob(job.Ma)} 
-                                                className="text-red-500 hover:text-red-700 disabled:text-gray-300" 
+                                                className="p-2 text-red-400 hover:text-white hover:bg-red-500 rounded-lg transition-colors"
                                                 title="Xóa mục này"
                                                 disabled={isSaving}
                                             >
-                                                🗑️
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
                                             </button>
                                         </div>
                                     </td>
@@ -610,32 +654,48 @@ const DataEntryContent: React.FC<DataEntryContentProps> = ({ back }) => {
                         </tbody>
                     </table>
                 </div>
-                {jobEntries.length === 0 && <p className="text-center text-gray-500 py-4">Bảng tạm trống.</p>}
+                {jobEntries.length === 0 && (
+                    <div className="text-center py-10 text-gray-500 bg-white/5 border border-dashed border-white/10 rounded-xl mt-4">
+                        <p>Bảng tạm hiện đang trống.</p>
+                    </div>
+                )}
                 
-                <div className="flex flex-wrap gap-4 mt-4 border-t pt-4">
+                <div className="flex flex-wrap gap-4 mt-8 pt-6 border-t border-white/10 justify-end">
                     <button
                         onClick={handleSync}
                         disabled={isJobLoading || isChecking || isSaving || jobEntries.length === 0}
-                        className="px-4 py-2 bg-[#184d47] text-white rounded-md hover:bg-opacity-80 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                        className="px-5 py-2.5 bg-green-600/80 hover:bg-green-600 text-white rounded-xl shadow-lg hover:shadow-green-500/20 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                     >
-                        {isJobLoading ? 'Đang đồng bộ...' : `☁️ Đồng bộ ${jobEntries.length} mục`}
+                         {isJobLoading ? <span className="animate-spin">⏳</span> : '🚀'}
+                         {isJobLoading ? 'Đang đồng bộ...' : `Đồng bộ Sheet`}
                     </button>
                     <button
                         onClick={handleCheckExistingJobs}
                         disabled={isChecking || isJobLoading || isSaving || jobEntries.length === 0}
-                        className="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                        className="px-5 py-2.5 bg-yellow-500/80 hover:bg-yellow-500 text-white rounded-xl shadow-lg hover:shadow-yellow-500/20 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                     >
-                        {isChecking ? 'Đang kiểm tra...' : '🔍 Kiểm tra'}
+                        {isChecking ? <span className="animate-spin">⏳</span> : '🔍'}
+                        {isChecking ? 'Đang kiểm tra...' : 'Kiểm tra trùng'}
                     </button>
                     <button
                         onClick={handleDownloadExcel}
                         disabled={jobEntries.length === 0 || isChecking || isJobLoading || isSaving}
-                        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                        className="px-5 py-2.5 bg-blue-600/80 hover:bg-blue-600 text-white rounded-xl shadow-lg hover:shadow-blue-500/20 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                     >
-                        ⬇️ Tải xuống Excel
+                        <span>📊</span> Xuất Excel
                     </button>
                 </div>
             </div>
+            
+            <style>{`
+                @keyframes fade-in {
+                    from { opacity: 0; transform: translateY(10px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                .animate-fade-in {
+                    animation: fade-in 0.3s ease-out forwards;
+                }
+            `}</style>
         </div>
     );
 };

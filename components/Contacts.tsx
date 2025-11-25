@@ -24,7 +24,7 @@ const contactsData = [
 
 const ContactCard: React.FC<typeof contactsData[0]> = ({ name, imgSrc, phone, zalo }) => {
   return (
-    <div className="bg-white rounded-2xl p-5 w-56 text-center shadow-md transition-transform duration-300 hover:-translate-y-1.5 flex-shrink-0">
+    <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-5 w-56 text-center shadow-md transition-transform duration-300 hover:-translate-y-1.5 flex-shrink-0">
       <img src={imgSrc} alt="avatar" className="w-20 h-20 rounded-full object-cover mx-auto mb-3 border-4 border-gray-200" />
       <h3 className="mb-3 text-lg font-bold text-[#184d47]">{name}</h3>
       <div className="flex justify-center gap-3">

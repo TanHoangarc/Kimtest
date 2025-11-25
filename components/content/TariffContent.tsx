@@ -6,25 +6,28 @@ interface TariffContentProps {
 }
 
 const TariffTable: React.FC<{ data: string[][] }> = ({ data }) => (
-    <div className="overflow-x-auto mt-4">
+    <div className="overflow-x-auto mt-6 rounded-lg shadow-lg">
         <table className="w-full border-collapse text-sm text-center">
             <thead>
-                <tr className="bg-[#5c9ead] text-white">
-                    <th className="p-2 border border-gray-300">Charge Name</th>
-                    <th className="p-2 border border-gray-300">Charge Name En</th>
-                    <th className="p-2 border border-gray-300">Is Must</th>
-                    <th className="p-2 border border-gray-300">Per CNTR / Per BILL</th>
-                    <th className="p-2 border border-gray-300">Per Bill</th>
-                    <th className="p-2 border border-gray-300">20GP</th>
-                    <th className="p-2 border border-gray-300">40GP</th>
-                    <th className="p-2 border border-gray-300">40HQ</th>
+                <tr className="bg-[#5c9ead] text-white uppercase tracking-wider">
+                    <th className="p-3 border border-white/20">Charge Name</th>
+                    <th className="p-3 border border-white/20">Charge Name En</th>
+                    <th className="p-3 border border-white/20">Is Must</th>
+                    <th className="p-3 border border-white/20">Per CNTR / Per BILL</th>
+                    <th className="p-3 border border-white/20">Per Bill</th>
+                    <th className="p-3 border border-white/20">20GP</th>
+                    <th className="p-3 border border-white/20">40GP</th>
+                    <th className="p-3 border border-white/20">40HQ</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody className="text-gray-900 font-medium">
                 {data.map((row, rowIndex) => (
-                    <tr key={rowIndex} className="even:bg-gray-100 hover:bg-gray-200 transition-colors">
+                    <tr 
+                        key={rowIndex} 
+                        className="bg-white/70 hover:bg-white/90 transition-colors border-b border-gray-200/50 backdrop-blur-sm"
+                    >
                         {row.map((cell, cellIndex) => (
-                            <td key={cellIndex} className="p-2 border border-gray-300">{cell}</td>
+                            <td key={cellIndex} className="p-3 border-r border-gray-200/30 last:border-r-0">{cell}</td>
                         ))}
                     </tr>
                 ))}
@@ -53,22 +56,44 @@ const TariffContent: React.FC<TariffContentProps> = ({ back }) => {
 
     return (
         <div>
-            <p>Chọn cảng HCM hoặc HPH để xem bảng cước:</p>
-            <div className="flex gap-4 mt-2">
-                <button onClick={() => setPort('HCM')} className={`px-4 py-2 rounded-md transition ${port === 'HCM' ? 'bg-[#184d47] text-white' : 'bg-gray-200'}`}>HCM</button>
-                <button onClick={() => setPort('HPH')} className={`px-4 py-2 rounded-md transition ${port === 'HPH' ? 'bg-[#184d47] text-white' : 'bg-gray-200'}`}>HPH</button>
+            <p className="mb-4 text-lg">Chọn cảng để xem biểu phí chi tiết:</p>
+            <div className="flex flex-wrap gap-4 mt-2">
+                <button 
+                    onClick={() => setPort('HCM')} 
+                    className={`
+                        w-40 py-3 rounded-lg font-bold text-lg uppercase tracking-wide transition-all shadow-md transform hover:-translate-y-1
+                        ${port === 'HCM' 
+                            ? 'bg-[#184d47] text-white ring-2 ring-green-400' 
+                            : 'bg-white/20 text-white hover:bg-white/30 border border-white/10'}
+                    `}
+                >
+                    HCM
+                </button>
+                <button 
+                    onClick={() => setPort('HPH')} 
+                    className={`
+                        w-40 py-3 rounded-lg font-bold text-lg uppercase tracking-wide transition-all shadow-md transform hover:-translate-y-1
+                        ${port === 'HPH' 
+                            ? 'bg-[#184d47] text-white ring-2 ring-green-400' 
+                            : 'bg-white/20 text-white hover:bg-white/30 border border-white/10'}
+                    `}
+                >
+                    HPH
+                </button>
             </div>
+
             {port === 'HCM' && <TariffTable data={dataHCM} />}
             {port === 'HPH' && <TariffTable data={dataHPH} />}
+            
             {port && (
-                <div className="mt-6 text-center">
+                <div className="mt-10 text-center">
                     <a
                         href="https://www.kimberryline.com/Company_Show/index/import"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 hover:underline font-semibold"
+                        className="inline-block bg-yellow-400 text-gray-900 hover:bg-yellow-300 font-bold py-3 px-8 rounded-full shadow-lg hover:shadow-yellow-400/50 transition-all transform hover:-translate-y-1"
                     >
-                        Xem thêm chi tiết biểu phí tại trang chủ Kimberryline
+                        🔗 Xem chi tiết biểu phí đầy đủ tại Website Kimberry
                     </a>
                 </div>
             )}
