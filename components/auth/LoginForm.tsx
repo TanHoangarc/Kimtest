@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface LoginFormProps {
     onLoginSuccess: () => void;
@@ -9,6 +9,15 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, switchToRegister 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [rememberMe, setRememberMe] = useState(false);
+
+    useEffect(() => {
+        const rememberedEmail = localStorage.getItem('rememberedEmail');
+        if (rememberedEmail) {
+            setEmail(rememberedEmail);
+            setRememberMe(true);
+        }
+    }, []);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -23,9 +32,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, switchToRegister 
         const user = storedUsers.find((u: any) => u.email === email);
 
         if (user && user.password === password) {
-            // In a real app, you'd get a token from the server.
-            // Here, we'll just store the user object to indicate a session.
             localStorage.setItem('user', JSON.stringify({ email: user.email }));
+
+            if (rememberMe) {
+                localStorage.setItem('rememberedEmail', email);
+            } else {
+                localStorage.removeItem('rememberedEmail');
+            }
+
             onLoginSuccess();
         } else {
             setError('Email hoặc mật khẩu không chính xác.');
@@ -61,6 +75,21 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, switchToRegister 
                         placeholder="••••••••"
                         required
                     />
+                </div>
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                        <input
+                            id="remember-me"
+                            name="remember-me"
+                            type="checkbox"
+                            checked={rememberMe}
+                            onChange={(e) => setRememberMe(e.target.checked)}
+                            className="h-4 w-4 text-[#5c9ead] focus:ring-[#4a8c99] border-gray-300 rounded"
+                        />
+                        <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+                            Ghi nhớ tài khoản
+                        </label>
+                    </div>
                 </div>
                 <button
                     type="submit"

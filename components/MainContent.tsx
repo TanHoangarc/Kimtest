@@ -10,6 +10,8 @@ import JobSearchContent from './content/JobSearchContent';
 import SubmissionContent from './content/SubmissionContent';
 import AdminPanelContent from './content/AdminPanelContent';
 import DataEntryContent from './content/DataEntryContent';
+import MblPaymentContent from './content/MblPaymentContent';
+import FileManagerContent from './content/FileManagerContent';
 import { ViewType } from '../types';
 import BackButton from './BackButton';
 
@@ -28,6 +30,8 @@ const viewConfig: Record<ViewType, { title: string; component: React.FC<{ back: 
   submission: { title: 'Nộp hồ sơ hoàn cược', component: SubmissionContent },
   admin: { title: 'Quản lý Người dùng', component: AdminPanelContent },
   dataEntry: { title: 'Nhập liệu & Cập nhật Job', component: DataEntryContent },
+  mblPayment: { title: 'Thanh toán MBL', component: MblPaymentContent },
+  fileManager: { title: 'Quản lý File Storage', component: FileManagerContent },
 };
 
 const MainContent: React.FC<MainContentProps> = ({ activeView, setActiveView }) => {

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { User } from '../../types';
 
 interface RegisterFormProps {
     onRegisterSuccess: () => void;
@@ -24,16 +25,16 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, switchTo
             return;
         }
 
-        const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
-        const userExists = storedUsers.some((u: any) => u.email === email);
+        const storedUsers: User[] = JSON.parse(localStorage.getItem('users') || '[]');
+        const userExists = storedUsers.some((u) => u.email === email);
 
         if (userExists) {
             setError('Email này đã được sử dụng.');
             return;
         }
 
-        // Add new user to our makeshift DB
-        const newUser = { email, password };
+        // Add new user to our makeshift DB with the default 'Customer' role
+        const newUser: User = { email, password, role: 'Customer' };
         storedUsers.push(newUser);
         localStorage.setItem('users', JSON.stringify(storedUsers));
 

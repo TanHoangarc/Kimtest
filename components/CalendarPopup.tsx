@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 interface CalendarPopupProps {
   onSelectDate: (date: Date) => void;
@@ -31,20 +31,15 @@ const CalendarPopup: React.FC<CalendarPopupProps> = ({ onSelectDate, onClose }) 
     };
   }, [onClose]);
 
-  useEffect(() => {
-    renderCalendar(year, month);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentDate]);
-
-  const handleDayClick = (day: number) => {
+  const handleDayClick = useCallback((day: number) => {
     const selected = new Date(year, month, day);
     onSelectDate(selected);
-  };
+  }, [year, month, onSelectDate]);
 
-  const renderCalendar = (year: number, month: number) => {
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const prevMonthDays = new Date(year, month, 0).getDate();
+  const renderCalendar = useCallback((yearParam: number, monthParam: number) => {
+    const firstDay = new Date(yearParam, monthParam, 1).getDay();
+    const daysInMonth = new Date(yearParam, monthParam + 1, 0).getDate();
+    const prevMonthDays = new Date(yearParam, monthParam, 0).getDate();
     const today = new Date();
     
     const calendarDays: React.ReactNode[] = [];
@@ -60,8 +55,8 @@ const CalendarPopup: React.FC<CalendarPopupProps> = ({ onSelectDate, onClose }) 
 
     // Current month's days
     for (let d = 1; d <= daysInMonth; d++) {
-      const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
-      const isSunday = new Date(year, month, d).getDay() === 0;
+      const isToday = d === today.getDate() && monthParam === today.getMonth() && yearParam === today.getFullYear();
+      const isSunday = new Date(yearParam, monthParam, d).getDay() === 0;
       calendarDays.push(
         <div
           key={`current-${d}`}
@@ -87,7 +82,11 @@ const CalendarPopup: React.FC<CalendarPopupProps> = ({ onSelectDate, onClose }) 
         );
     }
     setDays(calendarDays);
-  };
+  }, [handleDayClick]);
+
+  useEffect(() => {
+    renderCalendar(year, month);
+  }, [year, month, renderCalendar]);
 
   const handlePrevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
   const handleNextMonth = () => setCurrentDate(new Date(year, month + 1, 1));

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 const monthsVN = [
   "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
@@ -14,15 +14,10 @@ const Calendar: React.FC = () => {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
-  useEffect(() => {
-    renderCalendar(year, month);
-    // eslint-disable--next-line react-hooks/exhaustive-deps
-  }, [currentDate]);
-
-  const renderCalendar = (year: number, month: number) => {
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const prevMonthDays = new Date(year, month, 0).getDate();
+  const renderCalendar = useCallback((yearParam: number, monthParam: number) => {
+    const firstDay = new Date(yearParam, monthParam, 1).getDay();
+    const daysInMonth = new Date(yearParam, monthParam + 1, 0).getDate();
+    const prevMonthDays = new Date(yearParam, monthParam, 0).getDate();
     const today = new Date();
     
     const calendarDays: React.ReactNode[] = [];
@@ -36,8 +31,8 @@ const Calendar: React.FC = () => {
     }
 
     for (let d = 1; d <= daysInMonth; d++) {
-      const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
-      const isSunday = new Date(year, month, d).getDay() === 0;
+      const isToday = d === today.getDate() && monthParam === today.getMonth() && yearParam === today.getFullYear();
+      const isSunday = new Date(yearParam, monthParam, d).getDay() === 0;
       calendarDays.push(
         <div
           key={`current-${d}`}
@@ -63,7 +58,11 @@ const Calendar: React.FC = () => {
         );
     }
     setDays(calendarDays);
-  };
+  }, []);
+
+  useEffect(() => {
+    renderCalendar(year, month);
+  }, [year, month, renderCalendar]);
 
   const handleMonthChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setCurrentDate(new Date(year, parseInt(e.target.value), 1));
