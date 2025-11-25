@@ -1,3 +1,4 @@
+
 import { GoogleGenAI } from "@google/genai";
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
@@ -30,8 +31,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'Missing image data.' });
     }
 
+    // Check for API Key explicitly
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) {
+        console.error("Error: process.env.API_KEY is missing.");
+        return res.status(500).json({ 
+            error: 'Configuration Error', 
+            details: 'Chưa cấu hình API Key (process.env.API_KEY) cho Server. Vui lòng thêm biến môi trường API_KEY trong cài đặt Vercel.' 
+        });
+    }
+
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const ai = new GoogleGenAI({ apiKey });
         
         // Using gemini-2.5-flash for fast and efficient multimodal tasks
         const response = await ai.models.generateContent({
@@ -51,7 +62,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
         });
 
-        return res.status(200).json({ text: response.text });
+        const text = response.text || "Không trích xuất được văn bản (AI trả về rỗng).";
+
+        return res.status(200).json({ text });
 
     } catch (error) {
         console.error("AI Generation Error:", error);
