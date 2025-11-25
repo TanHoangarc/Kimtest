@@ -74,8 +74,9 @@ const OcrTool: React.FC = () => {
         setError('Vui lòng chỉ chọn file hình ảnh (JPG, PNG, WEBP).');
         return;
     }
-    if (file.size > 4 * 1024 * 1024) {
-        setError('File quá lớn. Vui lòng chọn ảnh dưới 4MB.');
+    // Limit to 3MB because Base64 encoding increases size by ~33%, potentially exceeding 4MB server limit.
+    if (file.size > 3 * 1024 * 1024) {
+        setError('File quá lớn. Vui lòng chọn ảnh dưới 3MB để đảm bảo AI xử lý tốt.');
         return;
     }
     setError(null);
