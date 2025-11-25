@@ -25,19 +25,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
 
-    const { imageBase64, mimeType } = req.body;
+    const { imageBase64, mimeType, apiKey: userApiKey } = req.body;
 
     if (!imageBase64 || !mimeType) {
         return res.status(400).json({ error: 'Missing image data.' });
     }
 
-    // Check for API Key explicitly
-    const apiKey = process.env.API_KEY;
+    // Determine API Key: Use user provided key first, otherwise fallback to server env var
+    let apiKey = userApiKey;
     if (!apiKey) {
-        console.error("Error: process.env.API_KEY is missing.");
+        apiKey = process.env.API_KEY;
+    }
+
+    if (!apiKey) {
+        console.error("Error: API Key is missing (neither in request nor env).");
         return res.status(500).json({ 
             error: 'Configuration Error', 
-            details: 'Chưa cấu hình API Key (process.env.API_KEY) cho Server. Vui lòng thêm biến môi trường API_KEY trong cài đặt Vercel.' 
+            details: 'Chưa cấu hình API Key. Vui lòng thêm biến môi trường API_KEY trong cài đặt Vercel hoặc nhập trực tiếp vào ô API Key trên giao diện.' 
         });
     }
 
