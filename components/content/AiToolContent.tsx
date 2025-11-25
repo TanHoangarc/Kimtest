@@ -67,6 +67,7 @@ const OcrTool: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [customApiKey, setCustomApiKey] = useState(''); // State for custom API key
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const processFile = (file: File) => {
@@ -111,7 +112,11 @@ const OcrTool: React.FC = () => {
         const response = await fetch('/api/generate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ imageBase64: base64Data, mimeType: fileType }),
+            body: JSON.stringify({ 
+                imageBase64: base64Data, 
+                mimeType: fileType,
+                apiKey: customApiKey.trim() // Pass the custom API key if provided
+            }),
         });
         if (!response.ok) {
             const errData = await response.json();
@@ -145,6 +150,22 @@ const OcrTool: React.FC = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-3">
+            {/* Custom API Key Input */}
+            <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200 text-sm">
+                <label className="block font-semibold text-yellow-800 mb-1">Google Gemini API Key (Tùy chọn)</label>
+                <input 
+                    type="password" 
+                    value={customApiKey}
+                    onChange={(e) => setCustomApiKey(e.target.value)}
+                    placeholder="Nhập API Key của bạn nếu Server chưa cấu hình..."
+                    className="w-full p-2 border rounded focus:ring-2 focus:ring-yellow-500 outline-none text-gray-700 bg-white"
+                />
+                <p className="text-xs text-yellow-700 mt-1">
+                    Nếu bạn gặp lỗi "Chưa cấu hình API Key", hãy nhập key của bạn vào đây. 
+                    <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="underline ml-1 font-bold">Lấy Key tại đây</a>
+                </p>
+            </div>
+
              <div 
                 className={`border-2 border-dashed rounded-lg transition-all duration-200 bg-gray-50 text-center relative group py-2
                     ${isDragging ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300 hover:border-indigo-500'}
